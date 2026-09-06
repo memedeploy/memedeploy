@@ -1,0 +1,1567 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>MEMEDEPLOY — Solana Token Launcher</title>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.577.0/dist/umd/lucide.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,700;1,800&display=swap" rel="stylesheet">
+  <style>
+    /* ── TOKENS ────────────────────────────────────────────── */
+    :root {
+      --bg:     #0b0c0f;
+      --panel:  #121417;
+      --field:  #0e1012;
+      --line:   #222724;
+      --muted:  #848984;
+      --text:   #f3f5ef;
+      --lime:   #d9ff00;
+      --lime2:  #91aa18;
+      --danger: #ff9d9d;
+    }
+
+    /* ── RESET ─────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { background: var(--bg); scroll-behavior: smooth; }
+    body {
+      width: 100%; min-height: 100vh; overflow-x: hidden;
+      background: var(--bg); color: var(--text);
+      font-family: "DM Sans", sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    body::-webkit-scrollbar { width: 6px; }
+    body::-webkit-scrollbar-thumb { background: var(--lime2); border-radius: 6px; }
+    body::-webkit-scrollbar-track { background: #08090b; }
+    button, input, textarea, select { font-family: inherit; }
+    button { cursor: pointer; }
+    a { color: inherit; text-decoration: none; }
+    input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+    /* ── LAYOUT ────────────────────────────────────────────── */
+    .app {
+      width: 100%;
+      background-image: radial-gradient(rgba(217,255,0,.07) .6px, transparent .7px);
+      background-size: 16px 16px;
+    }
+    .wrap { width: 100%; max-width: 1100px; margin: auto; padding: 0 24px; }
+
+    /* ── HEADER ────────────────────────────────────────────── */
+    .header {
+      position: sticky; top: 0; z-index: 40;
+      border-bottom: 1px solid var(--line);
+      background: rgba(11,12,15,.95);
+      backdrop-filter: blur(16px);
+    }
+    .headerin {
+      height: 58px; display: flex; align-items: center;
+      justify-content: space-between; gap: 20px;
+    }
+    .brand {
+      display: flex; align-items: center; gap: 9px;
+      border: 0; background: none; color: var(--text); cursor: pointer;
+    }
+    .mark {
+      width: 22px; height: 22px; border-radius: 7px;
+      display: grid; place-items: center;
+      background: var(--lime); color: #0d0f09;
+    }
+    .wordmark {
+      font-size: 13px; font-weight: 800;
+      letter-spacing: -.06em; font-style: italic;
+    }
+    .wordmark b { color: var(--lime); }
+    .nav { display: flex; gap: 2px; }
+    .nav-btn {
+      background: none; border: 0; color: var(--muted);
+      font: 600 9px "DM Sans"; padding: 7px 11px; border-radius: 6px;
+      transition: color .15s, background .15s;
+    }
+    .nav-btn:hover { color: var(--text); }
+    .nav-btn.active { color: var(--lime); }
+    .cta-header {
+      border: 1px solid var(--lime); border-radius: 7px;
+      background: var(--lime); color: #0d110a;
+      padding: 9px 14px; font: 800 9px "DM Sans";
+      letter-spacing: .04em; display: inline-flex;
+      align-items: center; gap: 6px; transition: .2s;
+    }
+    .cta-header:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(217,255,0,.2); }
+    .hamburger {
+      display: none; background: #161a17; border: 1px solid var(--line);
+      border-radius: 6px; color: var(--text); padding: 7px;
+    }
+    .mobile-nav {
+      display: none; flex-direction: column; gap: 2px;
+      padding: 10px 24px 14px; border-top: 1px solid var(--line);
+    }
+    .mobile-nav.open { display: flex; }
+    .mobile-nav .nav-btn { text-align: left; font-size: 10px; padding: 10px 8px; }
+
+    /* ── VIEWS ─────────────────────────────────────────────── */
+    .view { display: none; }
+    .view.active { display: block; animation: enterView .3s ease both; }
+    @keyframes enterView { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+    /* ── HOME HERO ─────────────────────────────────────────── */
+    .hero {
+      min-height: calc(100vh - 58px);
+      display: grid; place-items: center;
+      padding: 80px 0;
+      text-align: center;
+      background: radial-gradient(ellipse at 50% 18%, rgba(217,255,0,.09), transparent 38%);
+    }
+    .eyebrow {
+      color: var(--lime); font-size: 9px; font-weight: 800;
+      letter-spacing: .14em; text-transform: uppercase; margin-bottom: 14px;
+      display: block;
+    }
+    .hero h1 {
+      max-width: 760px; margin: 0 auto 18px;
+      font-size: clamp(42px, 7vw, 74px); line-height: .95;
+      letter-spacing: -.075em; font-weight: 800;
+    }
+    .hero p {
+      max-width: 500px; margin: 0 auto 28px;
+      color: #949a95; font-size: 14px; line-height: 1.65;
+    }
+    .btn-lime {
+      display: inline-flex; align-items: center; gap: 7px;
+      border: 1px solid var(--lime); border-radius: 8px;
+      background: var(--lime); color: #0d110a;
+      padding: 11px 18px; font: 800 10px "DM Sans";
+      letter-spacing: .04em; transition: .2s;
+    }
+    .btn-lime:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(217,255,0,.22); }
+    .btn-lime:active { transform: translateY(0) scale(.97); }
+    .btn-lime:disabled { background: var(--lime2); border-color: var(--lime2); cursor: not-allowed; color: rgba(10,12,7,.5); }
+    .btn-ghost {
+      display: inline-flex; align-items: center; gap: 7px;
+      border: 1px solid var(--line); border-radius: 8px;
+      background: none; color: var(--muted);
+      padding: 10px 16px; font: 800 9px "DM Sans";
+      transition: .2s;
+    }
+    .btn-ghost:hover { color: var(--text); border-color: #3a4038; }
+
+    /* Stats bar */
+    .stat-strip {
+      display: flex; gap: 40px; justify-content: center;
+      margin-top: 48px; padding-top: 36px;
+      border-top: 1px solid var(--line);
+    }
+    .stat-item { text-align: center; }
+    .stat-num { font-size: 26px; font-weight: 800; letter-spacing: -.05em; color: var(--text); }
+    .stat-label { font-size: 9px; color: var(--muted); margin-top: 3px; letter-spacing: .06em; }
+
+    /* How-it-works */
+    .section { padding: 64px 0; }
+    .section-head { margin-bottom: 36px; }
+    .section-head h2 { font-size: 28px; font-weight: 800; letter-spacing: -.05em; margin-top: 8px; }
+    .how-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .how-card {
+      background: linear-gradient(160deg, rgba(255,255,255,.025), transparent);
+      border: 1px solid var(--line); border-radius: 10px; padding: 22px;
+    }
+    .step-num { font-size: 11px; font-weight: 800; color: var(--lime); margin-bottom: 12px; }
+    .how-card h3 { font-size: 13px; font-weight: 700; margin-bottom: 6px; }
+    .how-card p { font-size: 10px; color: var(--muted); line-height: 1.6; }
+
+    /* Features */
+    .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .feat-card {
+      background: linear-gradient(160deg, rgba(255,255,255,.02), transparent);
+      border: 1px solid var(--line); border-radius: 10px; padding: 20px;
+    }
+    .feat-icon {
+      width: 32px; height: 32px; border-radius: 8px;
+      background: #1a2015; color: var(--lime);
+      display: grid; place-items: center; margin-bottom: 12px;
+    }
+    .feat-card h3 { font-size: 12px; font-weight: 700; margin-bottom: 5px; }
+    .feat-card p { font-size: 10px; color: var(--muted); line-height: 1.6; }
+
+    /* ── CREATE PAGE ───────────────────────────────────────── */
+    .page { padding: 36px 0 72px; }
+    .pagehead { margin-bottom: 22px; }
+    .pagehead h1 { font-size: 28px; font-weight: 800; letter-spacing: -.055em; line-height: 1; }
+    .pagehead p { margin-top: 6px; color: var(--muted); font-size: 10px; }
+
+    /* Token summary bar */
+    .token-summary {
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 12px; border: 1px solid rgba(217,255,0,.3);
+      border-radius: 9px; background: #141713; margin-bottom: 22px;
+    }
+    .token-avatar {
+      width: 32px; height: 32px; border-radius: 8px;
+      background: var(--lime); color: #0d0f09;
+      display: grid; place-items: center; font-weight: 800; font-size: 12px;
+      flex: 0 0 auto; overflow: hidden;
+    }
+    .token-avatar.has-logo { background-size: cover; background-position: center; color: transparent; }
+    .ts-name { font-size: 10px; font-weight: 800; }
+    .ts-sub { font-size: 8px; color: var(--muted); margin-top: 2px; }
+    .ts-pill {
+      margin-left: auto; border: 1px solid #313829; background: #191d17;
+      border-radius: 999px; padding: 4px 9px; color: #d4d9cb; font-size: 8px;
+    }
+
+    /* Wizard layout */
+    .wizard { display: grid; grid-template-columns: 152px 1fr; gap: 20px; }
+    .step-nav { padding-top: 2px; }
+    .step-nav-item {
+      display: flex; gap: 10px; margin-bottom: 16px;
+      color: #6e736e; cursor: pointer;
+    }
+    .step-nav-item:hover { color: var(--muted); }
+    .step-dot {
+      width: 20px; height: 20px; flex: 0 0 auto;
+      border-radius: 50%; border: 1px solid #363d37;
+      display: grid; place-items: center; font-size: 8px; font-weight: 700;
+    }
+    .step-nav-item.active { color: var(--text); }
+    .step-nav-item.active .step-dot { background: var(--lime); border-color: var(--lime); color: #0c0e09; }
+    .step-nav-item.done .step-dot { border-color: var(--lime); color: var(--lime); }
+    .snav-title { display: block; font-size: 9px; font-weight: 800; }
+    .snav-sub { display: block; font-size: 8px; color: var(--muted); margin-top: 2px; }
+
+    /* Card */
+    .card {
+      border: 1px solid var(--line); background: var(--panel);
+      border-radius: 10px; padding: 18px;
+    }
+    .cardhead { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+    .cardhead h2 { font-size: 15px; font-weight: 800; letter-spacing: -.03em; }
+    .cardhead p { margin-top: 4px; color: var(--muted); font-size: 9px; }
+
+    /* Fields */
+    .fields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .field { display: block; }
+    .field.full { grid-column: 1 / -1; }
+    .field label {
+      display: block; margin-bottom: 6px;
+      font-size: 8px; font-weight: 800; letter-spacing: .05em; color: var(--muted);
+    }
+    .field input, .field textarea, .field select {
+      width: 100%; border: 1px solid #202522; border-radius: 6px;
+      background: var(--field); color: var(--text);
+      padding: 10px 11px; font: 500 10px "DM Sans";
+      transition: border-color .18s, box-shadow .18s;
+    }
+    .field textarea { height: 80px; resize: vertical; }
+    .field input:focus, .field textarea:focus, .field select:focus {
+      outline: none; border-color: rgba(217,255,0,.8);
+      box-shadow: 0 0 0 3px rgba(217,255,0,.07);
+    }
+    .field input::placeholder, .field textarea::placeholder { color: #525852; }
+    .helper { display: block; min-height: 12px; margin-top: 4px; font-size: 7.5px; color: var(--muted); line-height: 1.4; }
+    .err { display: block; min-height: 12px; margin-top: 4px; font-size: 7.5px; color: var(--danger); line-height: 1.4; }
+
+    /* Logo drop zone */
+    .drop {
+      height: 82px; border: 1px dashed #3a403b; border-radius: 7px;
+      background: #0c0e0d; display: flex; align-items: center;
+      justify-content: center; gap: 10px; cursor: pointer; overflow: hidden; transition: border-color .2s;
+    }
+    .drop:hover { border-color: var(--lime2); }
+    .drop-icon { width: 28px; height: 28px; border-radius: 7px; background: #1c2219; display: grid; place-items: center; color: var(--lime); }
+    .drop-text { font-size: 9px; color: #b0b6b0; }
+    .preview-mini { width: 100%; height: 100%; background-size: cover; background-position: center; display: none; }
+
+    /* Step actions */
+    .step-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 18px; }
+    .step-actions-right { display: flex; gap: 10px; }
+
+    /* Settings cards */
+    .setting {
+      border: 1px solid var(--line); background: #101311;
+      border-radius: 8px; padding: 14px; margin-bottom: 12px;
+    }
+    .setting.liq-setting { background: linear-gradient(100deg, #181f12, #141713); }
+    .sethead { display: flex; align-items: flex-start; gap: 9px; }
+    .set-icon {
+      width: 20px; height: 20px; border-radius: 5px;
+      background: #2a3820; color: var(--lime);
+      display: grid; place-items: center; flex: 0 0 auto;
+    }
+    .sethead h3 { font-size: 10px; font-weight: 700; margin-bottom: 3px; }
+    .sethead p { font-size: 8px; color: var(--muted); line-height: 1.5; }
+
+    /* Toggle */
+    .toggle {
+      margin-left: auto; width: 32px; height: 18px;
+      border: 0; border-radius: 99px; background: #4a524c;
+      padding: 3px; cursor: pointer; flex: 0 0 auto;
+    }
+    .toggle i { display: block; width: 12px; height: 12px; border-radius: 50%; background: #cdd0ca; transition: transform .2s; }
+    .toggle.on { background: var(--lime); }
+    .toggle.on i { transform: translateX(14px); background: #0d100b; }
+
+    /* Choices */
+    .choices { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 13px; }
+    .choice {
+      background: #111412; color: #d2d7cf; border: 1px solid #2c322d;
+      border-radius: 5px; padding: 7px 10px; font: 800 9px "DM Sans"; cursor: pointer;
+      transition: .15s;
+    }
+    .choice:hover { border-color: var(--lime2); color: var(--text); }
+    .choice.selected { background: var(--lime); border-color: var(--lime); color: #0d0f09; }
+    .expand-fields { display: none; margin-top: 14px; }
+    .expand-fields.show { display: block; animation: reveal .2s ease; }
+    @keyframes reveal { from { opacity:0; transform: translateY(-4px); } to { opacity:1; transform: none; } }
+
+    /* Review */
+    .review-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .review-group { border-top: 1px solid #272c28; padding-top: 12px; }
+    .review-title {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 9px; font-size: 8px; font-weight: 800; letter-spacing: .06em; color: var(--muted);
+    }
+    .review-line {
+      display: flex; justify-content: space-between; gap: 12px;
+      padding: 5px 0; font-size: 9px; color: var(--muted);
+      border-bottom: 1px solid rgba(255,255,255,.025);
+    }
+    .review-line:last-child { border-bottom: none; }
+    .review-line b { color: var(--text); font-weight: 600; text-align: right; word-break: break-word; max-width: 200px; }
+    .review-line.total b { color: var(--lime); font-weight: 800; }
+    .edit-btn {
+      border: 1px solid #303631; background: #191c1a;
+      color: var(--text); border-radius: 4px; padding: 4px 7px;
+      font: 800 7px "DM Sans"; cursor: pointer;
+    }
+
+    /* Payment waiting screen */
+    .waiting-screen { max-width: 600px; margin: 0 auto; }
+    .pay-address {
+      display: flex; align-items: center; gap: 10px;
+      border: 1px solid #2f3c2a; background: #101510; border-radius: 8px; padding: 11px 12px; margin: 14px 0;
+    }
+    .pay-address code { font: 500 10px "DM Sans"; color: #eaf2e0; word-break: break-all; flex: 1; }
+    .copy-btn {
+      border: 1px solid #3a4f33; background: #1c2719; color: var(--lime);
+      border-radius: 5px; padding: 7px; cursor: pointer;
+    }
+    .pay-status {
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      border: 1px solid rgba(217,255,0,.28); border-radius: 8px; padding: 14px;
+      background: #131a11; color: #ddeabc; font-size: 10px; margin-top: 16px;
+    }
+    .spinner {
+      width: 14px; height: 14px;
+      border: 2px solid rgba(217,255,0,.18); border-top-color: var(--lime);
+      border-radius: 50%; animation: spin .8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .submit-spinner {
+      width: 12px; height: 12px;
+      border: 2px solid rgba(16,18,13,.25); border-top-color: #10120d;
+      border-radius: 50%; animation: spin .7s linear infinite;
+    }
+    .notice { color: var(--muted); font-size: 9px; line-height: 1.65; text-align: center; margin: 12px auto; max-width: 460px; }
+    .smallbtn {
+      border: 1px solid #343a35; background: #181b19;
+      border-radius: 6px; color: var(--text);
+      padding: 7px 10px; font: 800 8px "DM Sans"; cursor: pointer;
+    }
+
+    /* ── LIQUIDITY PAGE ────────────────────────────────────── */
+    .liq-page {
+      min-height: calc(100vh - 58px);
+      padding: 64px 0 80px;
+      background: radial-gradient(ellipse at 50% 10%, rgba(217,255,0,.045), transparent 30%);
+    }
+    .liq-intro { max-width: 660px; margin: 0 auto; text-align: center; margin-bottom: 8px; }
+    .liq-title { font-size: clamp(30px, 5vw, 42px); font-weight: 800; letter-spacing: -.065em; margin: 10px 0; }
+    .liq-title .lime-word { color: var(--lime); font-style: italic; }
+    .liq-copy { color: #a8aea8; font-size: 11px; line-height: 1.6; max-width: 480px; margin: 0 auto; }
+    .liq-card {
+      max-width: 410px; margin: 24px auto 0;
+      background: rgba(18,20,25,.97); border: 1px solid #22252b;
+      border-radius: 10px; padding: 16px;
+      box-shadow: 0 16px 40px rgba(0,0,0,.2);
+    }
+    .liq-label {
+      display: block; margin-bottom: 7px;
+      color: #7a8080; font-size: 8px; font-weight: 800; letter-spacing: .08em;
+    }
+    .liq-input {
+      width: 100%; height: 38px; border: 1px solid #25282e; border-radius: 6px;
+      padding: 0 11px; background: var(--field); color: #f0f2ec;
+      font: 500 10px "DM Sans"; transition: border-color .18s, box-shadow .18s;
+    }
+    .liq-input::placeholder { color: #50555c; }
+    .liq-input:focus { outline: none; border-color: rgba(217,255,0,.8); box-shadow: 0 0 0 3px rgba(217,255,0,.07); }
+    .liq-err { min-height: 13px; margin-top: 4px; color: var(--danger); font-size: 8px; line-height: 1.3; }
+    .liq-helper { margin-top: 4px; color: #6e7470; font-size: 8px; line-height: 1.3; }
+    .deposit-row {
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+      min-height: 40px; padding: 9px 11px; margin: 8px 0 10px;
+      border: 1px solid rgba(217,255,0,.28); border-radius: 6px;
+      background: #1b2114; font-size: 9px; color: #cdd2c7;
+    }
+    .dep-left { display: flex; align-items: center; gap: 7px; }
+    .sol-badge {
+      width: 16px; height: 16px; border-radius: 50%;
+      background: var(--lime); color: #0d0f09;
+      display: grid; place-items: center; flex: 0 0 auto;
+    }
+    .dep-val { color: var(--text); font-size: 10px; font-weight: 800; }
+    .liq-submit {
+      width: 100%; min-height: 40px; display: flex; align-items: center;
+      justify-content: center; gap: 8px; border: 1px solid transparent;
+      border-radius: 7px; padding: 10px; font: 800 9px "DM Sans";
+      color: #101209; background: var(--lime2); transition: .2s;
+    }
+    .liq-submit:not(:disabled):hover { background: var(--lime); transform: translateY(-2px); box-shadow: 0 8px 20px rgba(217,255,0,.18); }
+    .liq-submit:not(:disabled):active { transform: translateY(0) scale(.98); }
+    .liq-submit:disabled { cursor: not-allowed; color: rgba(16,18,9,.45); background: #536010; }
+    .pay-note { max-width: 240px; margin: 9px auto 0; color: #64696a; font-size: 8px; line-height: 1.5; text-align: center; }
+    .liq-toast {
+      display: none; max-width: 410px; margin: 12px auto 0;
+      padding: 11px 13px; border: 1px solid rgba(217,255,0,.35);
+      border-radius: 7px; background: rgba(217,255,0,.06);
+      color: #d8eaaa; font-size: 9px; line-height: 1.5; text-align: center;
+    }
+    .liq-toast.show { display: block; animation: enterView .25s ease; }
+    .form-group { margin-bottom: 14px; }
+
+    /* ── TOAST ─────────────────────────────────────────────── */
+    .toast {
+      position: fixed; right: 20px; bottom: 20px; z-index: 999;
+      max-width: 280px; padding: 11px 15px; border-radius: 8px;
+      border: 1px solid rgba(217,255,0,.4); background: #181f14;
+      color: #e8f3c8; font-size: 10px;
+      opacity: 0; transform: translateY(10px); pointer-events: none;
+      transition: opacity .25s, transform .25s;
+    }
+    .toast.show { opacity: 1; transform: none; }
+
+    /* ── PAYMENT MODAL ─────────────────────────────────────── */
+    .pay-modal-backdrop {
+      position: fixed; inset: 0; z-index: 900;
+      background: rgba(0,0,0,.72);
+      display: flex; align-items: center; justify-content: center;
+      padding: 16px;
+      opacity: 0; pointer-events: none;
+      transition: opacity .25s;
+    }
+    .pay-modal-backdrop.open { opacity: 1; pointer-events: all; }
+    .pay-modal {
+      width: 100%; max-width: 440px;
+      background: #0f1113;
+      border: 1px solid rgba(217,255,0,.18);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 30px 80px rgba(0,0,0,.7), 0 0 0 1px rgba(217,255,0,.04) inset;
+      transform: translateY(16px) scale(.97);
+      transition: transform .3s cubic-bezier(.22,1,.36,1);
+    }
+    .pay-modal-backdrop.open .pay-modal { transform: none; }
+
+    /* Header strip */
+    .pm-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 18px; border-bottom: 1px solid #1e2220;
+      background: #0c0e10;
+    }
+    .pm-title { font-size: 11px; font-weight: 800; letter-spacing: -.02em; }
+    .pm-close {
+      width: 28px; height: 28px; border-radius: 8px;
+      background: #1a1d1b; border: 1px solid #282c2a;
+      color: var(--muted); display: grid; place-items: center; cursor: pointer;
+      transition: .15s;
+    }
+    .pm-close:hover { color: var(--text); border-color: #404540; }
+
+    /* Body */
+    .pm-body { padding: 18px; }
+
+    /* QR area */
+    .pm-qr-wrap {
+      display: flex; align-items: center; justify-content: center;
+      background: #f8faf4; border-radius: 10px; padding: 16px;
+      margin-bottom: 16px; position: relative; min-height: 180px;
+    }
+    .pm-qr-canvas { /* filled by JS */ }
+    .pm-qr-label {
+      position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%);
+      background: rgba(15,17,13,.85); border-radius: 99px;
+      padding: 3px 10px; font-size: 8px; color: #d9e8b0; white-space: nowrap;
+      font-weight: 700;
+    }
+
+    /* Amount pill */
+    .pm-amount-pill {
+      display: flex; align-items: center; justify-content: space-between;
+      background: linear-gradient(90deg, #1b2416, #161a14);
+      border: 1px solid rgba(217,255,0,.25); border-radius: 8px;
+      padding: 11px 14px; margin-bottom: 12px;
+    }
+    .pm-amount-left { display: flex; align-items: center; gap: 9px; }
+    .pm-sol-icon {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: var(--lime); color: #0d0f09;
+      display: grid; place-items: center; font-weight: 800; font-size: 11px;
+      flex: 0 0 auto;
+    }
+    .pm-amount-label { font-size: 8px; color: var(--muted); }
+    .pm-amount-val { font-size: 16px; font-weight: 800; letter-spacing: -.03em; color: var(--lime); }
+    .pm-copy-amount {
+      background: rgba(217,255,0,.08); border: 1px solid rgba(217,255,0,.2);
+      border-radius: 6px; color: var(--lime); padding: 7px 10px;
+      font: 800 8px "DM Sans"; cursor: pointer; transition: .15s;
+      display: flex; align-items: center; gap: 5px;
+    }
+    .pm-copy-amount:hover { background: rgba(217,255,0,.16); }
+
+    /* Address row */
+    .pm-addr-label { font-size: 8px; color: var(--muted); font-weight: 800; letter-spacing: .05em; margin-bottom: 6px; }
+    .pm-addr-box {
+      display: flex; align-items: center; gap: 9px;
+      background: #0c0f0d; border: 1px solid #232825;
+      border-radius: 8px; padding: 10px 12px; margin-bottom: 14px;
+    }
+    .pm-addr-code {
+      font: 500 9px "DM Sans"; color: #d5e0c8;
+      word-break: break-all; flex: 1; line-height: 1.5;
+    }
+    .pm-copy-addr {
+      background: #1c2719; border: 1px solid #344730;
+      border-radius: 6px; color: var(--lime); padding: 7px;
+      cursor: pointer; flex: 0 0 auto; transition: .15s;
+    }
+    .pm-copy-addr:hover { background: #253821; }
+
+    /* Steps list */
+    .pm-steps { display: flex; flex-direction: column; gap: 7px; margin-bottom: 16px; }
+    .pm-step-row {
+      display: flex; align-items: flex-start; gap: 9px;
+      font-size: 9px; color: var(--muted); line-height: 1.5;
+    }
+    .pm-step-num {
+      width: 18px; height: 18px; border-radius: 50%;
+      background: #1c2018; border: 1px solid #2e3a2b;
+      color: var(--lime); display: grid; place-items: center;
+      font: 800 8px "DM Sans"; flex: 0 0 auto;
+    }
+
+    /* Status bar */
+    .pm-status {
+      display: flex; align-items: center; justify-content: center; gap: 9px;
+      border: 1px solid rgba(217,255,0,.22); border-radius: 8px;
+      padding: 12px; background: #111a0f; color: #d4e8b0; font-size: 9px;
+    }
+
+    /* Countdown */
+    .pm-expire { font-size: 8px; color: var(--muted); text-align: center; margin-top: 10px; }
+    .pm-expire span { color: var(--lime); font-weight: 800; }
+
+    /* ── HIDDEN UTILS ──────────────────────────────────────── */
+    .hidden { display: none !important; }
+    .text-center { text-align: center; }
+    .mt-3 { margin-top: 12px; }
+    .mt-4 { margin-top: 16px; }
+
+    /* ── RESPONSIVE ────────────────────────────────────────── */
+    @media (max-width: 768px) {
+      .nav, .cta-header { display: none; }
+      .hamburger { display: flex; align-items: center; justify-content: center; }
+      .how-grid, .features-grid { grid-template-columns: 1fr; }
+      .wizard { grid-template-columns: 1fr; }
+      .step-nav { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; }
+      .step-nav-item { margin-bottom: 0; min-width: 100px; }
+      .snav-sub { display: none; }
+      .fields { grid-template-columns: 1fr; }
+      .review-grid { grid-template-columns: 1fr; }
+      .stat-strip { gap: 24px; }
+      .hero h1 { font-size: 40px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: .01ms !important;
+        transition-duration: .01ms !important;
+      }
+      .spinner { animation: none; border-top-color: var(--lime); }
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ═══════════════ HEADER ═══════════════ -->
+  <header class="header">
+    <div class="wrap headerin">
+      <button class="brand" type="button" data-route="home" aria-label="MEMEDEPLOY home">
+        <span class="mark"><i data-lucide="zap" width="12"></i></span>
+        <span class="wordmark">MEME<b>DEPLOY</b></span>
+      </button>
+      <nav class="nav" aria-label="Primary">
+        <button class="nav-btn active" type="button" data-route="home">Home</button>
+        <button class="nav-btn" type="button" data-route="create">Create Token</button>
+        <button class="nav-btn" type="button" data-route="liquidity">Liquidity</button>
+        <button class="nav-btn" type="button" data-route="home" data-scroll="how">How it works</button>
+      </nav>
+      <button class="cta-header" type="button" data-route="create">
+        <i data-lucide="zap" width="11"></i> CREATE TOKEN
+      </button>
+      <button class="hamburger" id="menu" type="button" aria-label="Open navigation" aria-expanded="false">
+        <i data-lucide="menu" width="16"></i>
+      </button>
+    </div>
+    <nav id="mobile-nav" class="mobile-nav" aria-label="Mobile">
+      <button class="nav-btn" type="button" data-route="home">Home</button>
+      <button class="nav-btn" type="button" data-route="create">Create Token</button>
+      <button class="nav-btn" type="button" data-route="liquidity">Liquidity</button>
+    </nav>
+  </header>
+
+  <main>
+
+    <!-- ═══════════════ HOME ═══════════════ -->
+    <section id="home" class="view active">
+      <div class="hero">
+        <div class="wrap">
+          <span class="eyebrow">Solana Token Launcher</span>
+          <h1>Every good idea deserves a Solana token</h1>
+          <p>Name it, brand it, choose your launch setup. No wallet connection required — just fill the form and send the exact SOL.</p>
+          <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+            <button class="btn-lime" type="button" data-route="create">
+              <i data-lucide="zap" width="12"></i> Start creating
+            </button>
+            <button class="btn-ghost" type="button" data-route="liquidity">
+              <i data-lucide="droplets" width="12"></i> Add liquidity
+            </button>
+          </div>
+          <div class="stat-strip">
+            <div class="stat-item">
+              <div class="stat-num">12,400+</div>
+              <div class="stat-label">Tokens launched</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-num">$4.2M</div>
+              <div class="stat-label">Liquidity added</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-num">~30s</div>
+              <div class="stat-label">Average deploy time</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- How it works -->
+      <div class="section" id="how">
+        <div class="wrap">
+          <div class="section-head">
+            <span class="eyebrow" style="margin-bottom:6px">How it works</span>
+            <h2>Three steps to launch</h2>
+          </div>
+          <div class="how-grid">
+            <div class="how-card">
+              <div class="step-num">01</div>
+              <h3>Configure your token</h3>
+              <p>Set the name, symbol, supply, and upload your logo. Optionally configure social links and the market-maker bot.</p>
+            </div>
+            <div class="how-card">
+              <div class="step-num">02</div>
+              <h3>Review the cost</h3>
+              <p>See a full breakdown of the Raydium listing fee, your chosen liquidity amount, and any bot volume before you commit.</p>
+            </div>
+            <div class="how-card">
+              <div class="step-num">03</div>
+              <h3>Send &amp; go live</h3>
+              <p>Send the exact SOL to the payment address from any Solana wallet. Your token and pool are created on-chain within seconds.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Features -->
+      <div class="section" id="features">
+        <div class="wrap">
+          <div class="section-head">
+            <span class="eyebrow" style="margin-bottom:6px">Features</span>
+            <h2>Everything your launch needs</h2>
+          </div>
+          <div class="features-grid">
+            <div class="feat-card">
+              <div class="feat-icon"><i data-lucide="wallet" width="14"></i></div>
+              <h3>No wallet connection</h3>
+              <p>You never expose a private key. Just send SOL to the displayed address from any compatible Solana wallet.</p>
+            </div>
+            <div class="feat-card">
+              <div class="feat-icon"><i data-lucide="droplets" width="14"></i></div>
+              <h3>Raydium liquidity pool</h3>
+              <p>We create the pool for you. Your chosen SOL amount is paired with 20% of the total supply to seed trading.</p>
+            </div>
+            <div class="feat-card">
+              <div class="feat-icon"><i data-lucide="bot" width="14"></i></div>
+              <h3>Market maker bot</h3>
+              <p>Generate early buy orders from rotating wallets to build volume and attract organic investors on launch day.</p>
+            </div>
+            <div class="feat-card">
+              <div class="feat-icon"><i data-lucide="share-2" width="14"></i></div>
+              <h3>Metadata &amp; socials</h3>
+              <p>Token name, description, and all social links are embedded directly into on-chain metadata from day one.</p>
+            </div>
+            <div class="feat-card">
+              <div class="feat-icon"><i data-lucide="zap" width="14"></i></div>
+              <h3>Fast deployment</h3>
+              <p>Typical on-chain confirmation takes under 30 seconds. Your token appears in wallets and explorers immediately.</p>
+            </div>
+            <div class="feat-card">
+              <div class="feat-icon"><i data-lucide="shield-check" width="14"></i></div>
+              <h3>Transparent fees</h3>
+              <p>A flat 0.15 SOL listing fee plus your chosen liquidity. No hidden charges, no subscription required.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════ CREATE ═══════════════ -->
+    <section id="create" class="view">
+      <div class="wrap page">
+        <div class="pagehead">
+          <h1 id="wizard-title">Create a new token</h1>
+          <p id="wizard-subtitle">Configure everything, review the cost, then send the total. No wallet connection required.</p>
+        </div>
+
+        <!-- Summary bar -->
+        <div class="token-summary">
+          <div id="summary-avatar" class="token-avatar">?</div>
+          <div>
+            <div id="summary-name" class="ts-name">Your token</div>
+            <div class="ts-sub">
+              <span id="summary-symbol">SYMBOL</span> · Supply <span id="summary-supply">1,000,000,000</span>
+            </div>
+          </div>
+          <div id="summary-liquidity" class="ts-pill">2 SOL LP</div>
+        </div>
+
+        <!-- Wizard -->
+        <div id="wizard-layout" class="wizard">
+          <!-- Side nav -->
+          <aside class="step-nav" aria-label="Token creation steps">
+            <div class="step-nav-item active" id="snav1" data-stepbtn="1">
+              <div class="step-dot">1</div>
+              <div><span class="snav-title">Token basics</span><span class="snav-sub">Name, symbol, supply</span></div>
+            </div>
+            <div class="step-nav-item" id="snav2" data-stepbtn="2">
+              <div class="step-dot">2</div>
+              <div><span class="snav-title">Settings</span><span class="snav-sub">Liquidity, bot, socials</span></div>
+            </div>
+            <div class="step-nav-item" id="snav3" data-stepbtn="3">
+              <div class="step-dot">3</div>
+              <div><span class="snav-title">Review &amp; pay</span><span class="snav-sub">Confirm and launch</span></div>
+            </div>
+          </aside>
+
+          <!-- Step panels -->
+          <div>
+            <!-- STEP 1 -->
+            <section id="step1" class="stepview">
+              <div class="card">
+                <div class="cardhead">
+                  <div>
+                    <h2>Token basics</h2>
+                    <p>The identity of your token — shown in wallets and explorers.</p>
+                  </div>
+                  <button class="smallbtn" id="prefill" type="button">AI PREFILL</button>
+                </div>
+                <form id="basics-form" novalidate>
+                  <div class="fields">
+                    <div class="field">
+                      <label for="name">TOKEN NAME *</label>
+                      <input id="name" maxlength="32" placeholder="e.g. Ember Coin">
+                      <span class="helper">Max 32 characters</span>
+                      <span class="err" id="name-err" aria-live="polite"></span>
+                    </div>
+                    <div class="field">
+                      <label for="symbol">SYMBOL *</label>
+                      <input id="symbol" maxlength="10" placeholder="e.g. EMBR">
+                      <span class="helper">Max 10 chars, uppercase only</span>
+                      <span class="err" id="symbol-err" aria-live="polite"></span>
+                    </div>
+                    <div class="field">
+                      <label for="decimals">DECIMALS *</label>
+                      <input id="decimals" type="number" min="0" max="18" value="9">
+                      <span class="helper">9 is standard on Solana</span>
+                      <span class="err" id="decimals-err" aria-live="polite"></span>
+                    </div>
+                    <div class="field">
+                      <label for="supply">TOTAL SUPPLY *</label>
+                      <input id="supply" inputmode="numeric" value="1000000000">
+                      <span class="helper">20% seeds the pool, rest to your wallet</span>
+                      <span class="err" id="supply-err" aria-live="polite"></span>
+                    </div>
+                    <div class="field">
+                      <label for="logo">LOGO *</label>
+                      <label class="drop" for="logo">
+                        <div id="preview-mini" class="preview-mini"></div>
+                        <div id="drop-placeholder" style="display:flex;align-items:center;gap:10px">
+                          <span class="drop-icon"><i data-lucide="upload" width="13"></i></span>
+                          <span class="drop-text">Upload PNG or JPG · 1000×1000</span>
+                        </div>
+                      </label>
+                      <input id="logo" type="file" accept="image/png,image/jpeg" class="hidden">
+                      <span class="err" id="logo-err" aria-live="polite"></span>
+                    </div>
+                    <div class="field">
+                      <label for="description">DESCRIPTION *</label>
+                      <textarea id="description" placeholder="What is your token about?"></textarea>
+                      <span class="err" id="description-err" aria-live="polite"></span>
+                    </div>
+                  </div>
+                </form>
+              </div>
+              <div class="step-actions">
+                <button class="btn-ghost" id="draft" type="button">SAVE DRAFT</button>
+                <div class="step-actions-right">
+                  <button class="btn-ghost" type="button" data-route="home">← BACK</button>
+                  <button class="btn-lime" id="continue1" type="button" disabled>CONTINUE →</button>
+                </div>
+              </div>
+            </section>
+
+            <!-- STEP 2 -->
+            <section id="step2" class="stepview hidden">
+              <div class="card">
+                <div class="cardhead">
+                  <div>
+                    <h2>Advanced settings</h2>
+                    <p>Pick a liquidity setup and optionally enable the market-maker bot.</p>
+                  </div>
+                </div>
+
+                <!-- Liquidity -->
+                <div class="setting liq-setting">
+                  <div class="sethead">
+                    <span class="set-icon"><i data-lucide="droplets" width="12"></i></span>
+                    <div>
+                      <h3>Initial liquidity</h3>
+                      <p>This SOL is paired with 20% of your supply to seed the Raydium pool. Minimum 0.5 SOL covers pool-creation costs.</p>
+                    </div>
+                  </div>
+                  <div class="choices" id="liq-choices">
+                    <button class="choice" type="button" data-value="1">1 SOL</button>
+                    <button class="choice selected" type="button" data-value="2">2 SOL</button>
+                    <button class="choice" type="button" data-value="5">5 SOL</button>
+                    <button class="choice" type="button" data-value="10">10 SOL</button>
+                    <button class="choice" type="button" data-value="20">20 SOL</button>
+                    <button class="choice" type="button" data-value="custom">Custom</button>
+                  </div>
+                  <div id="custom-liq-wrap" class="field mt-3 hidden">
+                    <label for="custom-liq">CUSTOM SOL AMOUNT</label>
+                    <input id="custom-liq" type="number" min=".5" step=".1" placeholder="e.g. 3.5">
+                    <span class="err" id="liq-err" aria-live="polite"></span>
+                  </div>
+                </div>
+
+                <!-- Bot -->
+                <div class="setting">
+                  <div class="sethead">
+                    <span class="set-icon"><i data-lucide="bot" width="12"></i></span>
+                    <div>
+                      <h3>Market maker bot</h3>
+                      <p>Generate early buy orders from rotating wallets to build initial volume.</p>
+                      <span id="bot-status" class="helper" style="margin-top:4px">OFF</span>
+                    </div>
+                    <button id="bot-toggle" class="toggle" type="button" aria-label="Toggle market maker bot" aria-pressed="false"><i></i></button>
+                  </div>
+                  <div id="bot-fields" class="expand-fields">
+                    <div class="fields mt-3">
+                      <div class="field">
+                        <label for="makers">NUMBER OF MAKERS</label>
+                        <input id="makers" type="number" value="100">
+                        <span class="helper">Min 10 · Max 1,000</span>
+                        <span class="err" id="makers-err" aria-live="polite"></span>
+                      </div>
+                      <div class="field">
+                        <label for="volume">VOLUME TO GENERATE (SOL)</label>
+                        <input id="volume" type="number" step=".1" value="1">
+                        <span class="helper">Min 1 · Max 50 SOL — added to your total</span>
+                        <span class="err" id="volume-err" aria-live="polite"></span>
+                      </div>
+                      <div class="field">
+                        <label for="order-min">MIN ORDER (SOL)</label>
+                        <input id="order-min" type="number" step=".001" value=".001">
+                        <span class="helper">Minimum buy per maker</span>
+                        <span class="err" id="order-min-err" aria-live="polite"></span>
+                      </div>
+                      <div class="field">
+                        <label for="order-max">MAX ORDER (SOL)</label>
+                        <input id="order-max" type="number" step=".001" value=".002">
+                        <span class="helper">Must be ≥ min order</span>
+                        <span class="err" id="order-max-err" aria-live="polite"></span>
+                      </div>
+                      <div class="field">
+                        <label for="delay-min">MIN DELAY (seconds)</label>
+                        <input id="delay-min" type="number" value="10">
+                        <span class="helper">Seconds between buys</span>
+                        <span class="err" id="delay-min-err" aria-live="polite"></span>
+                      </div>
+                      <div class="field">
+                        <label for="delay-max">MAX DELAY (seconds)</label>
+                        <input id="delay-max" type="number" value="20">
+                        <span class="helper">Must be ≥ min delay</span>
+                        <span class="err" id="delay-max-err" aria-live="polite"></span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Social links -->
+                <div class="setting">
+                  <div class="sethead">
+                    <span class="set-icon"><i data-lucide="share-2" width="12"></i></span>
+                    <div>
+                      <h3>Social links <span style="font-size:8px;color:var(--muted);font-weight:400;margin-left:4px">OPTIONAL</span></h3>
+                      <p>Embedded into on-chain token metadata.</p>
+                    </div>
+                  </div>
+                  <div class="fields mt-3">
+                    <div class="field">
+                      <label for="twitter">X / TWITTER</label>
+                      <input id="twitter" placeholder="https://x.com/...">
+                    </div>
+                    <div class="field">
+                      <label for="telegram">TELEGRAM</label>
+                      <input id="telegram" placeholder="https://t.me/...">
+                    </div>
+                    <div class="field full">
+                      <label for="website">WEBSITE</label>
+                      <input id="website" placeholder="https://...">
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="step-actions">
+                <button class="btn-ghost" id="back1" type="button">← BACK</button>
+                <button class="btn-lime" id="continue2" type="button">CONTINUE →</button>
+              </div>
+            </section>
+
+            <!-- STEP 3 — Review -->
+            <section id="step3" class="stepview hidden">
+              <div class="card">
+                <div class="cardhead">
+                  <div>
+                    <h2>Review &amp; create</h2>
+                    <p>Check everything before you create. Nothing is charged until payment is sent.</p>
+                  </div>
+                </div>
+                <div class="review-grid">
+                  <div class="review-group">
+                    <div class="review-title">TOKEN <button class="edit-btn" data-edit="1">EDIT</button></div>
+                    <div id="review-token"></div>
+                  </div>
+                  <div class="review-group">
+                    <div class="review-title">COST <button class="edit-btn" data-edit="2">EDIT</button></div>
+                    <div id="review-cost"></div>
+                  </div>
+                  <div class="review-group">
+                    <div class="review-title">DESCRIPTION <button class="edit-btn" data-edit="1">EDIT</button></div>
+                    <div id="review-description"></div>
+                  </div>
+                  <div class="review-group">
+                    <div class="review-title">SOCIAL LINKS <button class="edit-btn" data-edit="2">EDIT</button></div>
+                    <div id="review-social"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="step-actions">
+                <button class="btn-ghost" id="back2" type="button">← BACK</button>
+                <button class="btn-lime" id="create-token" type="button">
+                  <i data-lucide="zap" width="12"></i> CREATE TOKEN
+                </button>
+              </div>
+            </section>
+          </div>
+        </div>
+
+        <!-- Payment waiting screen -->
+        <section id="waiting" class="hidden">
+          <div class="waiting-screen card">
+            <div class="text-center" style="margin-bottom:20px">
+              <h2 style="font-size:20px;font-weight:800;letter-spacing:-.04em">Send payment to create your token</h2>
+              <p class="notice">This is a simulated payment flow. No real blockchain transaction is submitted in demo mode.</p>
+            </div>
+            <div class="review-group">
+              <div class="review-title">PAYMENT ADDRESS</div>
+              <div class="pay-address">
+                <code id="payment-address">43LYKsh2CeeTUAFcFqqRkov3mVxtYNFedetYgX4a2VD2</code>
+                <button class="copy-btn" type="button" data-copy="payment-address" aria-label="Copy address">
+                  <i data-lucide="copy" width="13"></i>
+                </button>
+              </div>
+            </div>
+            <div id="waiting-summary"></div>
+            <div class="pay-status" role="status" aria-live="polite">
+              <span class="spinner" aria-hidden="true"></span>
+              <span>Waiting for deposit on-chain…</span>
+            </div>
+            <p class="notice">Send the exact amount from any Solana wallet. We'll detect the deposit and deploy your token automatically.</p>
+            <div class="text-center mt-4">
+              <button class="btn-ghost" id="return-review" type="button">← Back to review</button>
+            </div>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <!-- ═══════════════ LIQUIDITY ═══════════════ -->
+    <section id="liquidity" class="view">
+      <div class="liq-page">
+        <div class="wrap">
+          <div class="liq-intro">
+            <span class="eyebrow">Liquidity</span>
+            <h1 class="liq-title">Add <span class="lime-word">liquidity</span></h1>
+            <p class="liq-copy">Make your token tradeable. Enter your mint address and how much SOL to pair — we'll create the Raydium pool for you.</p>
+          </div>
+
+          <form id="liq-form" class="liq-card" novalidate>
+            <div class="form-group">
+              <label class="liq-label" for="mint-addr">TOKEN MINT ADDRESS</label>
+              <input id="mint-addr" class="liq-input" type="text" autocomplete="off" spellcheck="false" placeholder="e.g. 7xmR...t2Tk">
+              <p id="mint-err" class="liq-err" aria-live="polite"></p>
+            </div>
+
+            <div class="form-group">
+              <label class="liq-label" for="sol-amount">LIQUIDITY TO ADD (SOL)</label>
+              <input id="sol-amount" class="liq-input" type="number" inputmode="decimal" min="0" step="any" placeholder="e.g. 5">
+              <p id="sol-helper" class="liq-helper">This SOL is paired with your token to seed the Raydium pool.</p>
+              <p id="sol-err" class="liq-err" aria-live="polite"></p>
+            </div>
+
+            <div class="deposit-row">
+              <div class="dep-left">
+                <span class="sol-badge"><i data-lucide="zap" width="8"></i></span>
+                <span>Total to deposit</span>
+              </div>
+              <strong id="dep-value" class="dep-val" aria-live="polite">0 SOL</strong>
+            </div>
+
+            <button id="liq-submit" class="liq-submit" type="submit" disabled>
+              <span id="liq-label-default">Add SOL Liquidity</span>
+              <span id="liq-label-dynamic" class="hidden"></span>
+              <span id="liq-spinner" class="submit-spinner hidden" aria-hidden="true"></span>
+            </button>
+
+            <p class="pay-note">Deposit by scanning the QR with any Solana wallet. No wallet connection required.</p>
+          </form>
+
+          <div id="liq-toast" class="liq-toast" role="status" aria-live="polite">
+            Liquidity request prepared. This is a simulation only — no blockchain transaction has been submitted.
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ═══════════════ PAYMENT MODAL ═══════════════ -->
+<div id="pay-modal-backdrop" class="pay-modal-backdrop" role="dialog" aria-modal="true" aria-label="Payment">
+  <div class="pay-modal">
+    <div class="pm-header">
+      <span class="pm-title">
+        <i data-lucide="zap" width="11" style="display:inline;vertical-align:middle;margin-right:5px;color:var(--lime)"></i>
+        <span id="pm-title-text">Send payment</span>
+      </span>
+      <button class="pm-close" id="pm-close" type="button" aria-label="Close">
+        <i data-lucide="x" width="13"></i>
+      </button>
+    </div>
+    <div class="pm-body">
+
+      <!-- QR code -->
+      <div class="pm-qr-wrap">
+        <canvas id="pm-qr-canvas" class="pm-qr-canvas" width="148" height="148"></canvas>
+        <div class="pm-qr-label">Scan with any Solana wallet</div>
+      </div>
+
+      <!-- Amount -->
+      <div class="pm-amount-pill">
+        <div class="pm-amount-left">
+          <div class="pm-sol-icon">◎</div>
+          <div>
+            <div class="pm-amount-label">EXACT AMOUNT TO SEND</div>
+            <div id="pm-amount-val" class="pm-amount-val">0 SOL</div>
+          </div>
+        </div>
+        <button class="pm-copy-amount" id="pm-copy-amount" type="button">
+          <i data-lucide="copy" width="10"></i> COPY
+        </button>
+      </div>
+
+      <!-- Address -->
+      <div class="pm-addr-label">PAYMENT ADDRESS</div>
+      <div class="pm-addr-box">
+        <code id="pm-addr-code" class="pm-addr-code">43LYKsh2CeeTUAFcFqqRkov3mVxtYNFedetYgX4a2VD2</code>
+        <button class="pm-copy-addr" id="pm-copy-addr" type="button" aria-label="Copy address">
+          <i data-lucide="copy" width="12"></i>
+        </button>
+      </div>
+
+      <!-- Steps -->
+      <div class="pm-steps">
+        <div class="pm-step-row">
+          <div class="pm-step-num">1</div>
+          <span>Open any Solana wallet (Phantom, Backpack, Solflare, etc.)</span>
+        </div>
+        <div class="pm-step-row">
+          <div class="pm-step-num">2</div>
+          <span>Scan the QR above or paste the address manually</span>
+        </div>
+        <div class="pm-step-row">
+          <div class="pm-step-num">3</div>
+          <span>Send the <b style="color:var(--lime)" id="pm-step3-amt">exact amount</b> — we detect it automatically on-chain</span>
+        </div>
+      </div>
+
+      <!-- Status -->
+      <div class="pm-status" role="status" aria-live="polite">
+        <span class="spinner" aria-hidden="true"></span>
+        <span id="pm-status-text">Waiting for deposit on-chain…</span>
+      </div>
+
+      <!-- Expire -->
+      <div class="pm-expire">
+        This session expires in <span id="pm-countdown">14:59</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Global toast -->
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  lucide.createIcons();
+
+  /* ── UTILS ── */
+  const $ = id => document.getElementById(id);
+  const sol = n => {
+    const v = Number(n || 0);
+    if (!Number.isFinite(v) || v <= 0) return "0 SOL";
+    return new Intl.NumberFormat("en-US", { maximumFractionDigits: 4 }).format(v) + " SOL";
+  };
+  function showToast(msg) {
+    const t = $("toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    clearTimeout(window._toast);
+    window._toast = setTimeout(() => t.classList.remove("show"), 2800);
+  }
+  async function copyText(id) {
+    const text = $(id).textContent;
+    try { await navigator.clipboard.writeText(text); } catch {
+      const r = document.createRange();
+      r.selectNodeContents($(id));
+      getSelection().removeAllRanges();
+      getSelection().addRange(r);
+      document.execCommand("copy");
+      getSelection().removeAllRanges();
+    }
+    showToast("Copied to clipboard");
+  }
+
+  /* ── ROUTING ── */
+  function route(name) {
+    document.querySelectorAll(".view").forEach(v => v.classList.toggle("active", v.id === name));
+    document.querySelectorAll("[data-route]").forEach(b => {
+      b.classList.toggle("active", b.dataset.route === name && b.classList.contains("nav-btn"));
+    });
+    $("mobile-nav").classList.remove("open");
+    $("menu").setAttribute("aria-expanded", "false");
+    if (name === "create") showStep(state.step || 1);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+  document.querySelectorAll("[data-route]").forEach(b => b.onclick = () => {
+    route(b.dataset.route);
+    if (b.dataset.scroll) {
+      setTimeout(() => {
+        const el = document.getElementById(b.dataset.scroll);
+        if (el) el.scrollIntoView({ behavior: "smooth" });
+      }, 120);
+    }
+  });
+  $("menu").onclick = () => {
+    const open = !$("mobile-nav").classList.contains("open");
+    $("mobile-nav").classList.toggle("open", open);
+    $("menu").setAttribute("aria-expanded", open);
+  };
+
+  /* ── STATE ── */
+  const state = {
+    step: 1,
+    name: "", symbol: "", decimals: "9", supply: "1000000000",
+    description: "", logo: "", hasLogo: false,
+    liquidity: "2", custom: "",
+    bot: false, makers: "100", volume: "1",
+    orderMin: ".001", orderMax: ".002", delayMin: "10", delayMax: "20",
+    twitter: "", telegram: "", website: ""
+  };
+
+  /* ── CREATE FLOW ── */
+  const fieldMap = {
+    "name":"name","symbol":"symbol","decimals":"decimals","supply":"supply",
+    "description":"description","makers":"makers","volume":"volume",
+    "order-min":"orderMin","order-max":"orderMax",
+    "delay-min":"delayMin","delay-max":"delayMax",
+    "twitter":"twitter","telegram":"telegram","website":"website"
+  };
+  Object.keys(fieldMap).forEach(id => {
+    const el = $(id);
+    if (!el) return;
+    el.addEventListener("input", e => {
+      if (id === "symbol") e.target.value = e.target.value.toUpperCase();
+      state[fieldMap[id]] = e.target.value;
+      renderSummary();
+      if (state.step === 1) validateBasics(false);
+    });
+  });
+
+  function getLiquidity() {
+    return state.liquidity === "custom" ? Number(state.custom) : Number(state.liquidity);
+  }
+  function getTotal() {
+    return 0.15 + getLiquidity() + (state.bot ? Number(state.volume || 0) : 0);
+  }
+
+  function renderSummary() {
+    $("summary-name").textContent = state.name || "Your token";
+    $("summary-symbol").textContent = state.symbol || "SYMBOL";
+    $("summary-supply").textContent = Number(state.supply || 1e9).toLocaleString("en-US");
+    $("summary-liquidity").textContent = sol(getLiquidity()) + " LP";
+    const av = $("summary-avatar");
+    av.classList.toggle("has-logo", state.hasLogo);
+    if (state.hasLogo) av.style.backgroundImage = `url("${state.logo}")`;
+    else { av.style.backgroundImage = ""; av.textContent = state.symbol ? state.symbol[0] : "?"; }
+  }
+
+  function showStep(n) {
+    state.step = n;
+    $("wizard-layout").classList.remove("hidden");
+    $("waiting").classList.add("hidden");
+    document.querySelectorAll(".stepview").forEach(el => el.classList.toggle("hidden", el.id !== "step" + n));
+    [1, 2, 3].forEach(x => {
+      const nav = $("snav" + x);
+      nav.className = "step-nav-item" + (x === n ? " active" : x < n ? " done" : "");
+      nav.querySelector(".step-dot").textContent = x < n ? "✓" : x;
+    });
+    const titles = { 1: "Create a new token", 2: "Advanced settings", 3: "Review & create" };
+    const subs = {
+      1: "Configure everything, review the cost, then send the total. No connection required.",
+      2: "Pick a liquidity setup and optionally enable the market-maker bot.",
+      3: "Check the details before you create the token. Nothing is charged yet."
+    };
+    $("wizard-title").textContent = titles[n];
+    $("wizard-subtitle").textContent = subs[n];
+    if (n === 3) renderReview();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  document.querySelectorAll("[data-stepbtn]").forEach(b => b.onclick = () => showStep(+b.dataset.stepbtn));
+
+  function setErr(id, msg) { const el = $(id); if (el) el.textContent = msg; }
+  function validateBasics(show) {
+    let ok = true;
+    const checks = [
+      ["name-err", state.name.trim().length > 0 && state.name.trim().length <= 32, "Enter a name (1–32 chars)."],
+      ["symbol-err", /^[A-Z0-9]{1,10}$/.test(state.symbol.trim()), "Use 1–10 uppercase letters or numbers."],
+      ["decimals-err", Number.isInteger(+state.decimals) && +state.decimals >= 0 && +state.decimals <= 18, "Enter 0–18."],
+      ["supply-err", /^[1-9]\d*$/.test(state.supply.trim()), "Enter a positive whole number."],
+      ["logo-err", state.hasLogo, "Upload a PNG or JPG logo."],
+      ["description-err", state.description.trim().length > 0, "Add a short description."]
+    ];
+    checks.forEach(([id, valid, msg]) => {
+      if (!valid) ok = false;
+      setErr(id, show && !valid ? msg : "");
+    });
+    $("continue1").disabled = !ok;
+    return ok;
+  }
+
+  $("continue1").onclick = () => { if (validateBasics(true)) showStep(2); };
+  $("back1").onclick = () => showStep(1);
+  $("back2").onclick = () => showStep(2);
+  $("draft").onclick = () => showToast("Draft saved locally (demo)");
+  $("prefill").onclick = () => {
+    state.name = "Neon Gecko"; state.symbol = "GECK";
+    state.description = "A bright, community-built token for the next Solana wave.";
+    $("name").value = state.name; $("symbol").value = state.symbol; $("description").value = state.description;
+    renderSummary(); validateBasics(false);
+    showToast("AI prefill added — review before continuing");
+  };
+
+  $("logo").onchange = e => {
+    const f = e.target.files[0];
+    if (!f) return;
+    if (!/^image\/(png|jpeg)$/.test(f.type)) { setErr("logo-err", "Choose a PNG or JPG."); return; }
+    const r = new FileReader();
+    r.onload = () => {
+      state.logo = r.result; state.hasLogo = true;
+      $("preview-mini").style.backgroundImage = `url("${state.logo}")`;
+      $("preview-mini").style.display = "block";
+      $("drop-placeholder").style.display = "none";
+      renderSummary(); validateBasics(false);
+    };
+    r.readAsDataURL(f);
+  };
+
+  // Liquidity choices
+  document.querySelectorAll("#liq-choices .choice").forEach(b => b.onclick = () => {
+    document.querySelectorAll("#liq-choices .choice").forEach(x => x.classList.remove("selected"));
+    b.classList.add("selected");
+    state.liquidity = b.dataset.value;
+    $("custom-liq-wrap").classList.toggle("hidden", state.liquidity !== "custom");
+    renderSummary();
+  });
+  $("custom-liq").oninput = e => { state.custom = e.target.value; renderSummary(); };
+
+  // Bot toggle
+  $("bot-toggle").onclick = () => {
+    state.bot = !state.bot;
+    $("bot-toggle").classList.toggle("on", state.bot);
+    $("bot-toggle").setAttribute("aria-pressed", state.bot);
+    $("bot-fields").classList.toggle("show", state.bot);
+    $("bot-status").textContent = state.bot ? "ON — included in total cost" : "OFF";
+  };
+
+  function validAdvanced(show) {
+    let ok = getLiquidity() >= 0.5;
+    if (state.liquidity === "custom") setErr("liq-err", show && !ok ? "Minimum is 0.5 SOL." : "");
+    if (state.bot) {
+      const checks = [
+        ["makers-err", +state.makers >= 10 && +state.makers <= 1000, "Use 10–1000 makers."],
+        ["volume-err", +state.volume >= 1 && +state.volume <= 50, "1–50 SOL."],
+        ["order-min-err", +state.orderMin >= 0.001, "Min 0.001 SOL."],
+        ["order-max-err", +state.orderMax >= +state.orderMin, "Must be ≥ min order."],
+        ["delay-min-err", +state.delayMin >= 10, "Min 10 seconds."],
+        ["delay-max-err", +state.delayMax >= +state.delayMin, "Must be ≥ min delay."]
+      ];
+      checks.forEach(([id, valid, msg]) => { if (!valid) ok = false; setErr(id, show && !valid ? msg : ""); });
+    }
+    return ok;
+  }
+  $("continue2").onclick = () => { if (validAdvanced(true)) showStep(3); };
+
+  function rl(k, v, cls = "") {
+    return `<div class="review-line ${cls}"><span>${k}</span><b>${v || "—"}</b></div>`;
+  }
+  function renderReview() {
+    $("review-token").innerHTML =
+      rl("Name", state.name) + rl("Symbol", state.symbol) +
+      rl("Supply", Number(state.supply).toLocaleString("en-US")) + rl("Decimals", state.decimals);
+    $("review-cost").innerHTML =
+      rl("Raydium fee", "0.15 SOL") + rl("Liquidity", sol(getLiquidity())) +
+      rl("Market maker", state.bot ? sol(state.volume) : "Off") +
+      rl("Total", sol(getTotal()), "total");
+    $("review-description").innerHTML = rl("About", state.description);
+    $("review-social").innerHTML =
+      rl("X / Twitter", state.twitter) + rl("Telegram", state.telegram) + rl("Website", state.website) +
+      (state.bot ? rl("Bot", `${state.makers} makers · ${sol(state.volume)}`) : "");
+  }
+  document.querySelectorAll("[data-edit]").forEach(b => b.onclick = () => showStep(+b.dataset.edit));
+
+  $("create-token").onclick = () => {
+    openPayModal({
+      title: `Create ${state.name || "Token"} (${state.symbol || "?"})`,
+      amount: getTotal(),
+      address: "43LYKsh2CeeTUAFcFqqRkov3mVxtYNFedetYgX4a2VD2",
+      meta: [
+        { k: "Token", v: `${state.name} (${state.symbol})` },
+        { k: "Liquidity", v: sol(getLiquidity()) },
+        { k: "Service fee", v: "0.15 SOL" }
+      ]
+    });
+  };
+  $("return-review").onclick = () => showStep(3);
+
+  document.querySelectorAll("[data-copy]").forEach(b => b.onclick = () => copyText(b.dataset.copy));
+
+  renderSummary();
+  validateBasics(false);
+  showStep(1);
+
+  /* ── LIQUIDITY PAGE ── */
+  const mintInput = $("mint-addr");
+  const solInput = $("sol-amount");
+  const mintErr = $("mint-err");
+  const solErr = $("sol-err");
+  const depVal = $("dep-value");
+  const liqBtn = $("liq-submit");
+  const liqLabelDefault = $("liq-label-default");
+  const liqLabelDynamic = $("liq-label-dynamic");
+  const liqSpinner = $("liq-spinner");
+  const liqToast = $("liq-toast");
+
+  function mintValid(v) { return /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(v.trim()); }
+  function solValid(v) { const n = Number(v); return v.trim() !== "" && Number.isFinite(n) && n > 0; }
+
+  function validateLiq(showErrors) {
+    const mv = mintInput ? mintInput.value : "";
+    const sv = solInput ? solInput.value : "";
+    const mOk = mintValid(mv);
+    const sOk = solValid(sv);
+    if (showErrors) {
+      mintErr.textContent = mv.trim() && !mOk ? "Enter a valid Solana mint address." : "";
+      solErr.textContent = sv.trim() && !sOk ? "Enter an amount greater than 0 SOL." : "";
+    } else { mintErr.textContent = ""; solErr.textContent = ""; }
+    depVal.textContent = sol(sv);
+    liqBtn.disabled = !(mOk && sOk);
+    if (mOk && sOk) {
+      liqLabelDefault.classList.add("hidden");
+      liqLabelDynamic.classList.remove("hidden");
+      liqLabelDynamic.textContent = "Add " + sol(sv) + " Liquidity";
+    } else {
+      liqLabelDynamic.classList.add("hidden");
+      liqLabelDefault.classList.remove("hidden");
+    }
+    return mOk && sOk;
+  }
+
+  if (mintInput) {
+    mintInput.addEventListener("input", () => { liqToast.classList.remove("show"); validateLiq(false); });
+    mintInput.addEventListener("blur", () => validateLiq(true));
+    solInput.addEventListener("input", () => { liqToast.classList.remove("show"); validateLiq(false); });
+    solInput.addEventListener("blur", () => validateLiq(true));
+    $("liq-form").addEventListener("submit", e => {
+      e.preventDefault();
+      if (!validateLiq(true)) return;
+      // Show loading briefly then open modal
+      liqBtn.disabled = true;
+      liqLabelDefault.classList.add("hidden");
+      liqLabelDynamic.classList.add("hidden");
+      liqSpinner.classList.remove("hidden");
+      setTimeout(() => {
+        liqSpinner.classList.add("hidden");
+        liqLabelDynamic.classList.remove("hidden");
+        liqBtn.disabled = false;
+        openPayModal({
+          title: `Add ${sol(solInput.value)} Liquidity`,
+          amount: Number(solInput.value),
+          address: "43LYKsh2CeeTUAFcFqqRkov3mVxtYNFedetYgX4a2VD2",
+          meta: [
+            { k: "Mint address", v: mintInput.value.slice(0,8) + "…" + mintInput.value.slice(-6) },
+            { k: "Pool (Raydium)", v: "Auto-created" }
+          ]
+        });
+      }, 900);
+    });
+  }
+
+  /* ── PAYMENT MODAL ── */
+  const PAYMENT_ADDRESS = "43LYKsh2CeeTUAFcFqqRkov3mVxtYNFedetYgX4a2VD2";
+  let _countdown = null;
+
+  function drawQR(canvas, text) {
+    // Pure-JS minimal QR using a dot-matrix pattern based on text hash
+    // (real app would use a QR library; this creates a visually convincing placeholder)
+    const ctx = canvas.getContext("2d");
+    const size = canvas.width;
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, size, size);
+
+    const modules = 25; // grid size
+    const cell = size / modules;
+
+    // Deterministic pseudo-random pattern from text
+    let seed = 0;
+    for (let i = 0; i < text.length; i++) seed = ((seed << 5) - seed + text.charCodeAt(i)) | 0;
+    function rand() { seed ^= seed << 13; seed ^= seed >> 17; seed ^= seed << 5; return (seed >>> 0) / 0xffffffff; }
+
+    const grid = [];
+    for (let r = 0; r < modules; r++) {
+      grid[r] = [];
+      for (let c = 0; c < modules; c++) {
+        // finder patterns (corners)
+        const inFinder =
+          (r < 7 && c < 7) || (r < 7 && c >= modules - 7) || (r >= modules - 7 && c < 7);
+        grid[r][c] = inFinder ? null : rand() > 0.5;
+      }
+    }
+
+    // Draw data modules
+    ctx.fillStyle = "#111";
+    for (let r = 0; r < modules; r++) {
+      for (let c = 0; c < modules; c++) {
+        if (grid[r][c] === true) {
+          ctx.fillRect(c * cell + 1, r * cell + 1, cell - 2, cell - 2);
+        }
+      }
+    }
+
+    // Draw finder squares (top-left, top-right, bottom-left)
+    const drawFinder = (x, y) => {
+      ctx.fillStyle = "#111";
+      ctx.fillRect(x * cell, y * cell, 7 * cell, 7 * cell);
+      ctx.fillStyle = "#fff";
+      ctx.fillRect((x+1) * cell, (y+1) * cell, 5 * cell, 5 * cell);
+      ctx.fillStyle = "#111";
+      ctx.fillRect((x+2) * cell, (y+2) * cell, 3 * cell, 3 * cell);
+    };
+    drawFinder(0, 0);
+    drawFinder(modules - 7, 0);
+    drawFinder(0, modules - 7);
+  }
+
+  function openPayModal({ title, amount, address, meta }) {
+    const bd = $("pay-modal-backdrop");
+    $("pm-title-text").textContent = title;
+    $("pm-amount-val").textContent = sol(amount);
+    $("pm-step3-amt").textContent = sol(amount);
+    $("pm-addr-code").textContent = address;
+
+    // Draw QR
+    const canvas = $("pm-qr-canvas");
+    drawQR(canvas, `solana:${address}?amount=${amount}`);
+
+    // Open modal
+    bd.classList.add("open");
+    document.body.style.overflow = "hidden";
+
+    // Countdown 15 min
+    clearInterval(_countdown);
+    let secs = 15 * 60 - 1;
+    $("pm-countdown").textContent = fmt(secs);
+    _countdown = setInterval(() => {
+      secs--;
+      $("pm-countdown").textContent = fmt(secs);
+      if (secs <= 0) { clearInterval(_countdown); $("pm-status-text").textContent = "Session expired — please restart."; }
+    }, 1000);
+  }
+
+  function fmt(s) {
+    const m = Math.floor(s / 60), sec = s % 60;
+    return `${String(m).padStart(2,"0")}:${String(sec).padStart(2,"0")}`;
+  }
+
+  function closePayModal() {
+    $("pay-modal-backdrop").classList.remove("open");
+    document.body.style.overflow = "";
+    clearInterval(_countdown);
+  }
+
+  $("pm-close").onclick = closePayModal;
+  $("pay-modal-backdrop").onclick = e => { if (e.target === $("pay-modal-backdrop")) closePayModal(); };
+  document.addEventListener("keydown", e => { if (e.key === "Escape") closePayModal(); });
+
+  $("pm-copy-addr").onclick = () => {
+    navigator.clipboard.writeText($("pm-addr-code").textContent).catch(() => {});
+    showToast("Address copied");
+  };
+  $("pm-copy-amount").onclick = () => {
+    const amt = $("pm-amount-val").textContent.replace(" SOL","");
+    navigator.clipboard.writeText(amt).catch(() => {});
+    showToast("Amount copied");
+  };
+});
+</script>
+</body>
+</html>
