@@ -5,597 +5,483 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>MEMEDEPLOY — Solana Token Launcher</title>
   <script src="https://cdn.jsdelivr.net/npm/lucide@0.577.0/dist/umd/lucide.min.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,700;1,800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
   <style>
-    /* ── TOKENS ────────────────────────────────────────────── */
     :root {
-      --bg:     #0b0c0f;
-      --panel:  #121417;
-      --field:  #0e1012;
-      --line:   #222724;
-      --muted:  #848984;
-      --text:   #f3f5ef;
-      --lime:   #d9ff00;
-      --lime2:  #91aa18;
-      --danger: #ff9d9d;
+      --bg:#050608;--surface:#0c0d10;--panel:#111318;--border:#1e2028;--border2:#252830;
+      --muted:#6b7280;--text:#edeef2;--text2:#9ca3af;--lime:#c8ff00;--lime-dim:#8aae00;
+      --lime-glow:rgba(200,255,0,.15);--danger:#ff6b6b;--success:#4ade80;
+      --red:#ef4444;--green:#22c55e;--r:10px;--r-lg:16px;--r-sm:6px;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html{background:var(--bg);scroll-behavior:smooth}
+    body{font-family:"Space Grotesk",system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+    body::-webkit-scrollbar{width:4px}body::-webkit-scrollbar-thumb{background:var(--lime-dim);border-radius:4px}body::-webkit-scrollbar-track{background:var(--bg)}
+    button,input,textarea,select{font-family:inherit}button{cursor:pointer}a{color:inherit;text-decoration:none}
+    input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
+
+    /* LAYOUT */
+    .app{position:relative;min-height:100vh}
+    .app::before{content:"";position:fixed;inset:0;background-image:linear-gradient(rgba(200,255,0,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(200,255,0,.02) 1px,transparent 1px);background-size:48px 48px;pointer-events:none;z-index:0}
+    .wrap{width:100%;max-width:1100px;margin:auto;padding:0 28px;position:relative;z-index:1}
+
+    /* HEADER */
+    .header{position:sticky;top:0;z-index:100;background:rgba(5,6,8,.9);backdrop-filter:blur(20px);border-bottom:1px solid var(--border)}
+    .headerin{height:60px;display:flex;align-items:center;justify-content:space-between;gap:20px}
+    .brand{display:flex;align-items:center;gap:10px;border:0;background:none;color:var(--text);cursor:pointer}
+    .brand-icon{width:30px;height:30px;border-radius:8px;background:var(--lime);display:grid;place-items:center;color:#050608;flex:0 0 auto;position:relative;overflow:hidden}
+    .brand-icon::after{content:"";position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.3) 0%,transparent 60%)}
+    .brand-wordmark{font-family:"Space Mono",monospace;font-size:14px;font-weight:700;letter-spacing:-.02em;color:var(--text)}
+    .brand-wordmark span{color:var(--lime)}
+    .nav{display:flex;gap:2px}
+    .nav-btn{background:none;border:0;color:var(--muted);font-size:13px;font-weight:500;padding:7px 14px;border-radius:var(--r-sm);transition:color .15s,background .15s}
+    .nav-btn:hover{color:var(--text);background:rgba(255,255,255,.04)}
+    .nav-btn.active{color:var(--text)}
+    .cta-header{display:inline-flex;align-items:center;gap:7px;background:var(--lime);color:#050608;border:none;border-radius:var(--r-sm);padding:9px 16px;font:700 12px "Space Grotesk";letter-spacing:.02em;transition:transform .2s,box-shadow .2s}
+    .cta-header:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(200,255,0,.25)}
+    .hamburger{display:none;background:var(--panel);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);padding:8px}
+    .mobile-nav{display:none;flex-direction:column;gap:2px;padding:10px 28px 14px;border-top:1px solid var(--border)}
+    .mobile-nav.open{display:flex}
+    .mobile-nav .nav-btn{text-align:left;font-size:14px;padding:10px 10px}
+
+    /* VIEWS */
+    .view{display:none}
+    .view.active{display:block;animation:viewEnter .35s cubic-bezier(.22,1,.36,1) both}
+    @keyframes viewEnter{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+
+    /* HERO */
+    .hero{min-height:calc(100vh - 60px);display:grid;place-items:center;padding:80px 0;text-align:center;position:relative;overflow:hidden}
+    .hero-orb{position:absolute;border-radius:50%;filter:blur(80px);pointer-events:none}
+    .hero-orb-1{width:600px;height:600px;top:-150px;left:50%;transform:translateX(-50%);background:radial-gradient(circle,rgba(200,255,0,.1) 0%,transparent 70%);animation:orbFloat1 9s ease-in-out infinite}
+    .hero-orb-2{width:300px;height:300px;bottom:20%;right:5%;background:radial-gradient(circle,rgba(200,255,0,.06) 0%,transparent 70%);animation:orbFloat2 11s ease-in-out infinite}
+    .hero-orb-3{width:200px;height:200px;bottom:30%;left:5%;background:radial-gradient(circle,rgba(200,255,0,.05) 0%,transparent 70%);animation:orbFloat2 13s ease-in-out infinite reverse}
+    @keyframes orbFloat1{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(-24px)}}
+    @keyframes orbFloat2{0%,100%{transform:translateY(0)}50%{transform:translateY(-16px)}}
+    .hero-inner{position:relative;z-index:2}
+    .hero-badge{display:inline-flex;align-items:center;gap:7px;background:rgba(200,255,0,.08);border:1px solid rgba(200,255,0,.2);border-radius:999px;padding:6px 14px;font-size:11px;font-weight:600;color:var(--lime);margin-bottom:24px;animation:badgePop .5s cubic-bezier(.22,1,.36,1) .1s both}
+    .hero-badge .dot{width:6px;height:6px;border-radius:50%;background:var(--lime);animation:pulse 2s ease infinite}
+    @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.8)}}
+    @keyframes badgePop{from{opacity:0;transform:scale(.9) translateY(6px)}to{opacity:1;transform:none}}
+    .hero h1{font-size:clamp(44px,7.5vw,80px);font-weight:700;line-height:.95;letter-spacing:-.04em;max-width:820px;margin:0 auto 20px;animation:slideUp .6s cubic-bezier(.22,1,.36,1) .2s both}
+    .hero h1 .accent{color:var(--lime)}
+    .hero-sub{max-width:460px;margin:0 auto 32px;color:var(--text2);font-size:15px;line-height:1.7;animation:slideUp .6s cubic-bezier(.22,1,.36,1) .3s both}
+    .hero-ctas{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;animation:slideUp .6s cubic-bezier(.22,1,.36,1) .4s both}
+    @keyframes slideUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+
+    /* BUTTONS */
+    .btn-primary{display:inline-flex;align-items:center;gap:8px;background:var(--lime);color:#050608;border:none;border-radius:var(--r);padding:13px 22px;font:700 13px "Space Grotesk";transition:transform .2s,box-shadow .2s}
+    .btn-primary:hover{transform:translateY(-2px);box-shadow:0 12px 32px rgba(200,255,0,.25)}
+    .btn-primary:active{transform:translateY(0) scale(.97)}
+    .btn-primary:disabled{background:var(--lime-dim);cursor:not-allowed;opacity:.6}
+    .btn-secondary{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.04);color:var(--text2);border:1px solid var(--border2);border-radius:var(--r);padding:12px 20px;font:600 13px "Space Grotesk";transition:color .2s,border-color .2s,background .2s}
+    .btn-secondary:hover{color:var(--text);background:rgba(255,255,255,.07)}
+
+    /* STATS */
+    .stat-strip{display:flex;justify-content:center;margin-top:56px;border:1px solid var(--border);border-radius:var(--r-lg);background:var(--surface);overflow:hidden;animation:slideUp .6s cubic-bezier(.22,1,.36,1) .5s both}
+    .stat-item{flex:1;text-align:center;padding:22px 24px;border-right:1px solid var(--border);transition:background .2s}
+    .stat-item:last-child{border-right:none}
+    .stat-item:hover{background:rgba(200,255,0,.03)}
+    .stat-num{font-family:"Space Mono",monospace;font-size:28px;font-weight:700;color:var(--lime);letter-spacing:-.03em;line-height:1}
+    .stat-label{font-size:11px;color:var(--muted);margin-top:5px;font-weight:500}
+
+    /* SECTIONS */
+    .section{padding:80px 0;position:relative;z-index:1}
+    .section-label{display:inline-flex;align-items:center;gap:8px;font-family:"Space Mono",monospace;font-size:11px;color:var(--lime);letter-spacing:.1em;text-transform:uppercase;margin-bottom:16px}
+    .section-label::before{content:"";display:block;width:16px;height:1px;background:var(--lime)}
+    .section-head h2{font-size:clamp(26px,4vw,40px);font-weight:700;letter-spacing:-.04em;line-height:1.1;margin-bottom:14px}
+    .section-head p{color:var(--text2);font-size:15px;max-width:480px;line-height:1.6}
+
+    .how-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border-radius:var(--r-lg);overflow:hidden;border:1px solid var(--border);margin-top:40px}
+    .how-card{background:var(--surface);padding:28px 26px;transition:background .2s;position:relative;overflow:hidden}
+    .how-card::before{content:"";position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--lime),transparent);opacity:0;transition:opacity .3s}
+    .how-card:hover{background:rgba(200,255,0,.03)}
+    .how-card:hover::before{opacity:1}
+    .step-num{font-family:"Space Mono",monospace;font-size:11px;color:var(--lime);font-weight:700;letter-spacing:.05em;margin-bottom:16px}
+    .how-card h3{font-size:15px;font-weight:700;margin-bottom:8px;letter-spacing:-.02em}
+    .how-card p{font-size:13px;color:var(--text2);line-height:1.65}
+
+    .features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:40px}
+    .feat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:24px;transition:border-color .25s,transform .25s}
+    .feat-card:hover{border-color:rgba(200,255,0,.2);transform:translateY(-3px)}
+    .feat-icon{width:36px;height:36px;border-radius:9px;background:rgba(200,255,0,.1);color:var(--lime);display:grid;place-items:center;margin-bottom:14px}
+    .feat-card h3{font-size:14px;font-weight:700;margin-bottom:6px;letter-spacing:-.02em}
+    .feat-card p{font-size:13px;color:var(--text2);line-height:1.65}
+
+    .reveal{opacity:0;transform:translateY(20px);transition:opacity .55s cubic-bezier(.22,1,.36,1),transform .55s cubic-bezier(.22,1,.36,1)}
+    .reveal.visible{opacity:1;transform:none}
+    .reveal-delay-1{transition-delay:.1s}
+    .reveal-delay-2{transition-delay:.2s}
+    .reveal-delay-3{transition-delay:.3s}
+
+    /* HOME MOTION — subtle, continuous, no layout changes */
+    .hero-inner{animation:heroIn .75s cubic-bezier(.22,1,.36,1) both}
+    .hero-orb{animation:orbFloat 8s ease-in-out infinite}
+    .hero-orb-2{animation-delay:-2.5s}
+    .hero-orb-3{animation-delay:-5s}
+    .hero-badge .dot{animation:livePulse 1.8s ease-in-out infinite}
+    .stat-item{transition:transform .25s ease}
+    .stat-item:hover{transform:translateY(-4px)}
+    @keyframes heroIn{from{opacity:0;transform:translateY(18px) scale(.985)}to{opacity:1;transform:none}}
+    @keyframes orbFloat{0%,100%{transform:translate3d(0,0,0) scale(1)}50%{transform:translate3d(0,-14px,0) scale(1.035)}}
+    @keyframes livePulse{0%,100%{opacity:.45;transform:scale(.9)}50%{opacity:1;transform:scale(1.15)}}
+    @media (prefers-reduced-motion:reduce){
+      .hero-inner,.hero-orb,.hero-badge .dot{animation:none}
+      .stat-item{transition:none}
     }
 
-    /* ── RESET ─────────────────────────────────────────────── */
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { background: var(--bg); scroll-behavior: smooth; }
-    body {
-      width: 100%; min-height: 100vh; overflow-x: hidden;
-      background: var(--bg); color: var(--text);
-      font-family: "DM Sans", sans-serif;
-      -webkit-font-smoothing: antialiased;
-    }
-    body::-webkit-scrollbar { width: 6px; }
-    body::-webkit-scrollbar-thumb { background: var(--lime2); border-radius: 6px; }
-    body::-webkit-scrollbar-track { background: #08090b; }
-    button, input, textarea, select { font-family: inherit; }
-    button { cursor: pointer; }
-    a { color: inherit; text-decoration: none; }
-    input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; }
+    /* CREATE PAGE */
+    .page{padding:40px 0 80px}
+    .pagehead{margin-bottom:28px}
+    .pagehead h1{font-size:30px;font-weight:700;letter-spacing:-.04em;line-height:1}
+    .pagehead p{margin-top:8px;color:var(--text2);font-size:13px}
 
-    /* ── LAYOUT ────────────────────────────────────────────── */
-    .app {
-      width: 100%;
-      background-image: radial-gradient(rgba(217,255,0,.07) .6px, transparent .7px);
-      background-size: 16px 16px;
-    }
-    .wrap { width: 100%; max-width: 1100px; margin: auto; padding: 0 24px; }
+    .token-summary{display:flex;align-items:center;gap:14px;padding:12px 16px;border:1px solid rgba(200,255,0,.2);border-radius:var(--r);background:rgba(200,255,0,.04);margin-bottom:24px}
+    .token-avatar{width:36px;height:36px;border-radius:9px;background:var(--lime);color:#050608;display:grid;place-items:center;font-weight:700;font-size:13px;flex:0 0 auto;overflow:hidden}
+    .token-avatar.has-logo{background-size:cover;background-position:center;color:transparent}
+    .ts-name{font-size:13px;font-weight:700}
+    .ts-sub{font-size:11px;color:var(--muted);margin-top:2px}
+    .ts-pill{margin-left:auto;background:rgba(200,255,0,.1);border:1px solid rgba(200,255,0,.2);border-radius:999px;padding:4px 10px;color:var(--lime);font-size:11px;font-weight:600}
 
-    /* ── HEADER ────────────────────────────────────────────── */
-    .header {
-      position: sticky; top: 0; z-index: 40;
-      border-bottom: 1px solid var(--line);
-      background: rgba(11,12,15,.95);
-      backdrop-filter: blur(16px);
-    }
-    .headerin {
-      height: 58px; display: flex; align-items: center;
-      justify-content: space-between; gap: 20px;
-    }
-    .brand {
-      display: flex; align-items: center; gap: 9px;
-      border: 0; background: none; color: var(--text); cursor: pointer;
-    }
-    .mark {
-      width: 22px; height: 22px; border-radius: 7px;
-      display: grid; place-items: center;
-      background: var(--lime); color: #0d0f09;
-    }
-    .wordmark {
-      font-size: 13px; font-weight: 800;
-      letter-spacing: -.06em; font-style: italic;
-    }
-    .wordmark b { color: var(--lime); }
-    .nav { display: flex; gap: 2px; }
-    .nav-btn {
-      background: none; border: 0; color: var(--muted);
-      font: 600 9px "DM Sans"; padding: 7px 11px; border-radius: 6px;
-      transition: color .15s, background .15s;
-    }
-    .nav-btn:hover { color: var(--text); }
-    .nav-btn.active { color: var(--lime); }
-    .cta-header {
-      border: 1px solid var(--lime); border-radius: 7px;
-      background: var(--lime); color: #0d110a;
-      padding: 9px 14px; font: 800 9px "DM Sans";
-      letter-spacing: .04em; display: inline-flex;
-      align-items: center; gap: 6px; transition: .2s;
-    }
-    .cta-header:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(217,255,0,.2); }
-    .hamburger {
-      display: none; background: #161a17; border: 1px solid var(--line);
-      border-radius: 6px; color: var(--text); padding: 7px;
-    }
-    .mobile-nav {
-      display: none; flex-direction: column; gap: 2px;
-      padding: 10px 24px 14px; border-top: 1px solid var(--line);
-    }
-    .mobile-nav.open { display: flex; }
-    .mobile-nav .nav-btn { text-align: left; font-size: 10px; padding: 10px 8px; }
+    .wizard{display:grid;grid-template-columns:168px 1fr;gap:24px}
+    .step-nav{padding-top:4px}
+    .step-nav-item{display:flex;gap:12px;margin-bottom:6px;padding:10px 12px;border-radius:var(--r);color:var(--muted);cursor:pointer;transition:background .15s,color .15s}
+    .step-nav-item:hover{background:rgba(255,255,255,.04);color:var(--text2)}
+    .step-dot{width:22px;height:22px;flex:0 0 auto;border-radius:50%;border:1px solid var(--border2);display:grid;place-items:center;font-family:"Space Mono",monospace;font-size:10px;font-weight:700;transition:background .2s,border-color .2s,color .2s}
+    .step-nav-item.active{color:var(--text);background:rgba(255,255,255,.05)}
+    .step-nav-item.active .step-dot{background:var(--lime);border-color:var(--lime);color:#050608}
+    .step-nav-item.done .step-dot{border-color:var(--lime);color:var(--lime)}
+    .snav-title{display:block;font-size:12px;font-weight:700}
+    .snav-sub{display:block;font-size:11px;color:var(--muted);margin-top:2px}
+    .step-connector{width:1px;height:14px;background:var(--border);margin:2px 0 2px 21px}
 
-    /* ── VIEWS ─────────────────────────────────────────────── */
-    .view { display: none; }
-    .view.active { display: block; animation: enterView .3s ease both; }
-    @keyframes enterView { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+    .card{border:1px solid var(--border);background:var(--panel);border-radius:var(--r-lg);padding:24px}
+    .cardhead{display:flex;justify-content:space-between;gap:12px;margin-bottom:22px}
+    .cardhead h2{font-size:17px;font-weight:700;letter-spacing:-.03em}
+    .cardhead p{margin-top:5px;color:var(--muted);font-size:12px}
 
-    /* ── HOME HERO ─────────────────────────────────────────── */
-    .hero {
-      min-height: calc(100vh - 58px);
-      display: grid; place-items: center;
-      padding: 80px 0;
-      text-align: center;
-      background: radial-gradient(ellipse at 50% 18%, rgba(217,255,0,.09), transparent 38%);
-    }
-    .eyebrow {
-      color: var(--lime); font-size: 9px; font-weight: 800;
-      letter-spacing: .14em; text-transform: uppercase; margin-bottom: 14px;
-      display: block;
-    }
-    .hero h1 {
-      max-width: 760px; margin: 0 auto 18px;
-      font-size: clamp(42px, 7vw, 74px); line-height: .95;
-      letter-spacing: -.075em; font-weight: 800;
-    }
-    .hero p {
-      max-width: 500px; margin: 0 auto 28px;
-      color: #949a95; font-size: 14px; line-height: 1.65;
-    }
-    .btn-lime {
-      display: inline-flex; align-items: center; gap: 7px;
-      border: 1px solid var(--lime); border-radius: 8px;
-      background: var(--lime); color: #0d110a;
-      padding: 11px 18px; font: 800 10px "DM Sans";
-      letter-spacing: .04em; transition: .2s;
-    }
-    .btn-lime:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(217,255,0,.22); }
-    .btn-lime:active { transform: translateY(0) scale(.97); }
-    .btn-lime:disabled { background: var(--lime2); border-color: var(--lime2); cursor: not-allowed; color: rgba(10,12,7,.5); }
-    .btn-ghost {
-      display: inline-flex; align-items: center; gap: 7px;
-      border: 1px solid var(--line); border-radius: 8px;
-      background: none; color: var(--muted);
-      padding: 10px 16px; font: 800 9px "DM Sans";
-      transition: .2s;
-    }
-    .btn-ghost:hover { color: var(--text); border-color: #3a4038; }
+    .fields{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    .field{display:block}
+    .field.full{grid-column:1 / -1}
+    .field label{display:block;margin-bottom:7px;font-size:11px;font-weight:600;letter-spacing:.05em;color:var(--muted);text-transform:uppercase}
+    .field input,.field textarea,.field select{width:100%;border:1px solid var(--border2);border-radius:var(--r-sm);background:var(--bg);color:var(--text);padding:10px 13px;font:500 13px "Space Grotesk";transition:border-color .18s,box-shadow .18s}
+    .field textarea{height:84px;resize:vertical}
+    .field input:focus,.field textarea:focus,.field select:focus{outline:none;border-color:var(--lime);box-shadow:0 0 0 3px rgba(200,255,0,.08)}
+    .field input::placeholder,.field textarea::placeholder{color:#3a3d48}
+    .helper{display:block;min-height:14px;margin-top:5px;font-size:11px;color:var(--muted)}
+    .err{display:block;min-height:14px;margin-top:5px;font-size:11px;color:var(--danger)}
 
-    /* Stats bar */
-    .stat-strip {
-      display: flex; gap: 40px; justify-content: center;
-      margin-top: 48px; padding-top: 36px;
-      border-top: 1px solid var(--line);
-    }
-    .stat-item { text-align: center; }
-    .stat-num { font-size: 26px; font-weight: 800; letter-spacing: -.05em; color: var(--text); }
-    .stat-label { font-size: 9px; color: var(--muted); margin-top: 3px; letter-spacing: .06em; }
+    .drop{height:88px;border:1px dashed var(--border2);border-radius:var(--r);background:var(--bg);display:flex;align-items:center;justify-content:center;gap:12px;cursor:pointer;overflow:hidden;transition:border-color .2s,background .2s}
+    .drop:hover{border-color:var(--lime-dim);background:rgba(200,255,0,.03)}
+    .drop-icon{width:32px;height:32px;border-radius:8px;background:rgba(200,255,0,.1);display:grid;place-items:center;color:var(--lime)}
+    .drop-text{font-size:12px;color:var(--text2)}
+    .preview-mini{width:100%;height:100%;background-size:cover;background-position:center;display:none}
 
-    /* How-it-works */
-    .section { padding: 64px 0; }
-    .section-head { margin-bottom: 36px; }
-    .section-head h2 { font-size: 28px; font-weight: 800; letter-spacing: -.05em; margin-top: 8px; }
-    .how-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
-    .how-card {
-      background: linear-gradient(160deg, rgba(255,255,255,.025), transparent);
-      border: 1px solid var(--line); border-radius: 10px; padding: 22px;
-    }
-    .step-num { font-size: 11px; font-weight: 800; color: var(--lime); margin-bottom: 12px; }
-    .how-card h3 { font-size: 13px; font-weight: 700; margin-bottom: 6px; }
-    .how-card p { font-size: 10px; color: var(--muted); line-height: 1.6; }
+    .step-actions{display:flex;justify-content:space-between;align-items:center;margin-top:20px}
+    .step-actions-right{display:flex;gap:10px}
 
-    /* Features */
-    .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
-    .feat-card {
-      background: linear-gradient(160deg, rgba(255,255,255,.02), transparent);
-      border: 1px solid var(--line); border-radius: 10px; padding: 20px;
-    }
-    .feat-icon {
-      width: 32px; height: 32px; border-radius: 8px;
-      background: #1a2015; color: var(--lime);
-      display: grid; place-items: center; margin-bottom: 12px;
-    }
-    .feat-card h3 { font-size: 12px; font-weight: 700; margin-bottom: 5px; }
-    .feat-card p { font-size: 10px; color: var(--muted); line-height: 1.6; }
+    .setting{border:1px solid var(--border);background:var(--bg);border-radius:var(--r);padding:16px;margin-bottom:14px}
+    .setting.liq-setting{background:rgba(200,255,0,.03);border-color:rgba(200,255,0,.15)}
+    .sethead{display:flex;align-items:flex-start;gap:10px}
+    .set-icon{width:24px;height:24px;border-radius:6px;background:rgba(200,255,0,.1);color:var(--lime);display:grid;place-items:center;flex:0 0 auto}
+    .sethead h3{font-size:13px;font-weight:700;margin-bottom:3px}
+    .sethead p{font-size:12px;color:var(--muted);line-height:1.5}
 
-    /* ── CREATE PAGE ───────────────────────────────────────── */
-    .page { padding: 36px 0 72px; }
-    .pagehead { margin-bottom: 22px; }
-    .pagehead h1 { font-size: 28px; font-weight: 800; letter-spacing: -.055em; line-height: 1; }
-    .pagehead p { margin-top: 6px; color: var(--muted); font-size: 10px; }
+    .toggle{margin-left:auto;width:36px;height:20px;border:0;border-radius:99px;background:var(--border2);padding:3px;cursor:pointer;flex:0 0 auto;transition:background .2s}
+    .toggle i{display:block;width:14px;height:14px;border-radius:50%;background:var(--muted);transition:transform .2s,background .2s}
+    .toggle.on{background:var(--lime)}
+    .toggle.on i{transform:translateX(16px);background:#050608}
 
-    /* Token summary bar */
-    .token-summary {
-      display: flex; align-items: center; gap: 12px;
-      padding: 10px 12px; border: 1px solid rgba(217,255,0,.3);
-      border-radius: 9px; background: #141713; margin-bottom: 22px;
-    }
-    .token-avatar {
-      width: 32px; height: 32px; border-radius: 8px;
-      background: var(--lime); color: #0d0f09;
-      display: grid; place-items: center; font-weight: 800; font-size: 12px;
-      flex: 0 0 auto; overflow: hidden;
-    }
-    .token-avatar.has-logo { background-size: cover; background-position: center; color: transparent; }
-    .ts-name { font-size: 10px; font-weight: 800; }
-    .ts-sub { font-size: 8px; color: var(--muted); margin-top: 2px; }
-    .ts-pill {
-      margin-left: auto; border: 1px solid #313829; background: #191d17;
-      border-radius: 999px; padding: 4px 9px; color: #d4d9cb; font-size: 8px;
-    }
+    .choices{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+    .choice{background:var(--bg);color:var(--text2);border:1px solid var(--border2);border-radius:var(--r-sm);padding:8px 14px;font:600 12px "Space Grotesk";cursor:pointer;transition:all .15s}
+    .choice:hover{border-color:var(--lime-dim);color:var(--text)}
+    .choice.selected{background:var(--lime);border-color:var(--lime);color:#050608}
+    .expand-fields{display:none;margin-top:16px}
+    .expand-fields.show{display:block;animation:expandIn .22s ease}
+    @keyframes expandIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
 
-    /* Wizard layout */
-    .wizard { display: grid; grid-template-columns: 152px 1fr; gap: 20px; }
-    .step-nav { padding-top: 2px; }
-    .step-nav-item {
-      display: flex; gap: 10px; margin-bottom: 16px;
-      color: #6e736e; cursor: pointer;
-    }
-    .step-nav-item:hover { color: var(--muted); }
-    .step-dot {
-      width: 20px; height: 20px; flex: 0 0 auto;
-      border-radius: 50%; border: 1px solid #363d37;
-      display: grid; place-items: center; font-size: 8px; font-weight: 700;
-    }
-    .step-nav-item.active { color: var(--text); }
-    .step-nav-item.active .step-dot { background: var(--lime); border-color: var(--lime); color: #0c0e09; }
-    .step-nav-item.done .step-dot { border-color: var(--lime); color: var(--lime); }
-    .snav-title { display: block; font-size: 9px; font-weight: 800; }
-    .snav-sub { display: block; font-size: 8px; color: var(--muted); margin-top: 2px; }
+    .review-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+    .review-group{border-top:1px solid var(--border);padding-top:14px}
+    .review-title{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--muted);text-transform:uppercase}
+    .review-line{display:flex;justify-content:space-between;gap:12px;padding:6px 0;font-size:13px;color:var(--text2);border-bottom:1px solid rgba(255,255,255,.04)}
+    .review-line:last-child{border-bottom:none}
+    .review-line b{color:var(--text);font-weight:600;text-align:right;word-break:break-word;max-width:200px}
+    .review-line.total b{color:var(--lime);font-weight:700}
+    .edit-btn{border:1px solid var(--border2);background:var(--panel);color:var(--text2);border-radius:5px;padding:4px 9px;font:700 10px "Space Grotesk";letter-spacing:.05em;cursor:pointer;transition:color .15s,border-color .15s}
+    .edit-btn:hover{color:var(--text)}
 
-    /* Card */
-    .card {
-      border: 1px solid var(--line); background: var(--panel);
-      border-radius: 10px; padding: 18px;
-    }
-    .cardhead { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
-    .cardhead h2 { font-size: 15px; font-weight: 800; letter-spacing: -.03em; }
-    .cardhead p { margin-top: 4px; color: var(--muted); font-size: 9px; }
+    .smallbtn{border:1px solid var(--border2);background:var(--panel);color:var(--text2);border-radius:var(--r-sm);padding:7px 12px;font:700 11px "Space Grotesk";cursor:pointer;letter-spacing:.04em;transition:color .15s,border-color .15s}
+    .smallbtn:hover{color:var(--lime);border-color:rgba(200,255,0,.3)}
 
-    /* Fields */
-    .fields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    .field { display: block; }
-    .field.full { grid-column: 1 / -1; }
-    .field label {
-      display: block; margin-bottom: 6px;
-      font-size: 8px; font-weight: 800; letter-spacing: .05em; color: var(--muted);
-    }
-    .field input, .field textarea, .field select {
-      width: 100%; border: 1px solid #202522; border-radius: 6px;
-      background: var(--field); color: var(--text);
-      padding: 10px 11px; font: 500 10px "DM Sans";
-      transition: border-color .18s, box-shadow .18s;
-    }
-    .field textarea { height: 80px; resize: vertical; }
-    .field input:focus, .field textarea:focus, .field select:focus {
-      outline: none; border-color: rgba(217,255,0,.8);
-      box-shadow: 0 0 0 3px rgba(217,255,0,.07);
-    }
-    .field input::placeholder, .field textarea::placeholder { color: #525852; }
-    .helper { display: block; min-height: 12px; margin-top: 4px; font-size: 7.5px; color: var(--muted); line-height: 1.4; }
-    .err { display: block; min-height: 12px; margin-top: 4px; font-size: 7.5px; color: var(--danger); line-height: 1.4; }
+    /* ========================
+       PAYMENT MODAL — NEW FLOW
+       ======================== */
+    .pay-modal-backdrop{position:fixed;inset:0;z-index:900;background:rgba(0,0,0,.8);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:16px;opacity:0;pointer-events:none;transition:opacity .3s}
+    .pay-modal-backdrop.open{opacity:1;pointer-events:all}
+    .pay-modal{width:100%;max-width:460px;background:var(--panel);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;box-shadow:0 40px 100px rgba(0,0,0,.8);transform:translateY(20px) scale(.96);transition:transform .35s cubic-bezier(.22,1,.36,1)}
+    .pay-modal-backdrop.open .pay-modal{transform:none}
+    .pm-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);background:var(--surface)}
+    .pm-title{font-size:13px;font-weight:700;display:flex;align-items:center;gap:8px;color:var(--text)}
+    .pm-title-icon{color:var(--lime)}
+    .pm-close{width:30px;height:30px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid var(--border);color:var(--muted);display:grid;place-items:center;cursor:pointer;transition:.15s}
+    .pm-close:hover{color:var(--text)}
+    .pm-body{padding:20px}
 
-    /* Logo drop zone */
-    .drop {
-      height: 82px; border: 1px dashed #3a403b; border-radius: 7px;
-      background: #0c0e0d; display: flex; align-items: center;
-      justify-content: center; gap: 10px; cursor: pointer; overflow: hidden; transition: border-color .2s;
-    }
-    .drop:hover { border-color: var(--lime2); }
-    .drop-icon { width: 28px; height: 28px; border-radius: 7px; background: #1c2219; display: grid; place-items: center; color: var(--lime); }
-    .drop-text { font-size: 9px; color: #b0b6b0; }
-    .preview-mini { width: 100%; height: 100%; background-size: cover; background-position: center; display: none; }
+    /* Steps in modal */
+    .pm-screen{display:none}
+    .pm-screen.active{display:block;animation:viewEnter .3s ease}
 
-    /* Step actions */
-    .step-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 18px; }
-    .step-actions-right { display: flex; gap: 10px; }
+    /* Screen 1: Funding */
+    .pm-section-label{font-size:10px;font-weight:700;letter-spacing:.08em;color:var(--muted);text-transform:uppercase;margin-bottom:8px}
+    .pm-amount-row{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--bg);border:1px solid var(--border2);border-radius:var(--r);margin-bottom:14px}
+    .pm-amount-big{font-family:"Space Mono",monospace;font-size:22px;font-weight:700;color:var(--lime)}
+    .pm-amount-unit{font-size:13px;color:var(--text2);margin-left:4px}
+    .pm-copy-btn{display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:var(--r-sm);color:var(--text2);padding:7px 11px;font:600 11px "Space Grotesk";cursor:pointer;transition:.15s}
+    .pm-copy-btn:hover{color:var(--lime);border-color:rgba(200,255,0,.3)}
+    .pm-addr-row{display:flex;align-items:center;gap:10px;padding:11px 14px;background:var(--bg);border:1px solid var(--border2);border-radius:var(--r);margin-bottom:14px}
+    .pm-addr-code{font:500 11px "Space Mono";color:var(--text);word-break:break-all;flex:1;line-height:1.6}
+    .pm-divider{border:none;border-top:1px solid var(--border);margin:16px 0}
+    .pm-tx-label{font-size:12px;font-weight:600;color:var(--text2);margin-bottom:8px}
+    .pm-tx-row{display:flex;gap:8px}
+    .pm-tx-input{flex:1;border:1px solid var(--border2);border-radius:var(--r-sm);background:var(--bg);color:var(--text);padding:10px 13px;font:500 12px "Space Mono";transition:border-color .18s,box-shadow .18s}
+    .pm-tx-input:focus{outline:none;border-color:var(--lime);box-shadow:0 0 0 3px rgba(200,255,0,.08)}
+    .pm-tx-input::placeholder{color:#3a3d48}
+    .pm-check-btn{background:var(--lime);color:#050608;border:none;border-radius:var(--r-sm);padding:10px 16px;font:700 12px "Space Grotesk";cursor:pointer;transition:.2s;white-space:nowrap}
+    .pm-check-btn:hover{background:#d4ff1a}
+    .pm-check-btn:disabled{background:var(--lime-dim);cursor:not-allowed;opacity:.7}
+    .pm-close-link{display:block;text-align:center;margin-top:14px;color:var(--muted);font-size:12px;cursor:pointer;transition:color .15s}
+    .pm-close-link:hover{color:var(--text)}
 
-    /* Settings cards */
-    .setting {
-      border: 1px solid var(--line); background: #101311;
-      border-radius: 8px; padding: 14px; margin-bottom: 12px;
-    }
-    .setting.liq-setting { background: linear-gradient(100deg, #181f12, #141713); }
-    .sethead { display: flex; align-items: flex-start; gap: 9px; }
-    .set-icon {
-      width: 20px; height: 20px; border-radius: 5px;
-      background: #2a3820; color: var(--lime);
-      display: grid; place-items: center; flex: 0 0 auto;
-    }
-    .sethead h3 { font-size: 10px; font-weight: 700; margin-bottom: 3px; }
-    .sethead p { font-size: 8px; color: var(--muted); line-height: 1.5; }
+    /* Screen 2: Processing */
+    .pm-processing-title{font-size:16px;font-weight:700;letter-spacing:-.03em;margin-bottom:4px}
+    .pm-processing-sub{font-size:12px;color:var(--text2);margin-bottom:20px}
+    .pm-step-list{display:flex;flex-direction:column;gap:0}
+    .pm-step-item{display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
+    .pm-step-item:last-child{border-bottom:none}
+    .pm-step-circle{width:26px;height:26px;border-radius:50%;border:1px solid var(--border2);display:grid;place-items:center;flex:0 0 auto;font-family:"Space Mono",monospace;font-size:10px;color:var(--muted);transition:all .4s}
+    .pm-step-circle.working{border-color:var(--lime);color:var(--lime);position:relative;overflow:visible}
+    .pm-step-circle.working::after{content:"";position:absolute;inset:-3px;border-radius:50%;border:2px solid transparent;border-top-color:var(--lime);animation:spin .8s linear infinite}
+    .pm-step-circle.done{border-color:var(--success);background:rgba(74,222,128,.1);color:var(--success)}
+    .pm-step-info{flex:1}
+    .pm-step-name{font-size:13px;font-weight:700;letter-spacing:-.01em}
+    .pm-step-detail{font-size:11px;color:var(--muted);margin-top:2px}
+    .pm-step-badge{margin-left:auto;font-family:"Space Mono",monospace;font-size:10px;font-weight:700;padding:3px 8px;border-radius:4px;color:var(--lime);background:rgba(200,255,0,.1)}
+    .pm-step-badge.done-badge{color:var(--success);background:rgba(74,222,128,.1)}
+    @keyframes spin{to{transform:rotate(360deg)}}
 
-    /* Toggle */
-    .toggle {
-      margin-left: auto; width: 32px; height: 18px;
-      border: 0; border-radius: 99px; background: #4a524c;
-      padding: 3px; cursor: pointer; flex: 0 0 auto;
-    }
-    .toggle i { display: block; width: 12px; height: 12px; border-radius: 50%; background: #cdd0ca; transition: transform .2s; }
-    .toggle.on { background: var(--lime); }
-    .toggle.on i { transform: translateX(14px); background: #0d100b; }
+    /* Screen 3: Success */
+    .pm-success-icon{width:56px;height:56px;border-radius:50%;background:rgba(74,222,128,.15);border:2px solid var(--success);display:grid;place-items:center;margin:0 auto 16px;color:var(--success);animation:successPop .5s cubic-bezier(.22,1,.36,1)}
+    @keyframes successPop{from{transform:scale(.5);opacity:0}to{transform:scale(1);opacity:1}}
+    .pm-success-title{font-size:20px;font-weight:700;letter-spacing:-.04em;text-align:center;margin-bottom:6px}
+    .pm-success-sub{font-size:12px;color:var(--text2);text-align:center;margin-bottom:20px}
+    .pm-success-sub span{color:var(--lime);font-weight:700}
+    .pm-summary-rows{border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:16px}
+    .pm-sumrow{display:flex;justify-content:space-between;align-items:center;padding:9px 14px;border-bottom:1px solid var(--border);font-size:12px}
+    .pm-sumrow:last-child{border-bottom:none}
+    .pm-sumrow span{color:var(--muted)}
+    .pm-sumrow b{color:var(--text);font-weight:600;font-family:"Space Mono",monospace;font-size:11px}
+    .pm-view-liq-btn{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;background:var(--lime);color:#050608;border:none;border-radius:var(--r);padding:13px;font:700 13px "Space Grotesk";cursor:pointer;transition:.2s;margin-bottom:10px}
+    .pm-view-liq-btn:hover{background:#d4ff1a;transform:translateY(-1px);box-shadow:0 8px 24px rgba(200,255,0,.25)}
 
-    /* Choices */
-    .choices { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 13px; }
-    .choice {
-      background: #111412; color: #d2d7cf; border: 1px solid #2c322d;
-      border-radius: 5px; padding: 7px 10px; font: 800 9px "DM Sans"; cursor: pointer;
-      transition: .15s;
-    }
-    .choice:hover { border-color: var(--lime2); color: var(--text); }
-    .choice.selected { background: var(--lime); border-color: var(--lime); color: #0d0f09; }
-    .expand-fields { display: none; margin-top: 14px; }
-    .expand-fields.show { display: block; animation: reveal .2s ease; }
-    @keyframes reveal { from { opacity:0; transform: translateY(-4px); } to { opacity:1; transform: none; } }
+    /* ========================
+       LIQUIDITY PAGE (REVAMPED)
+       ======================== */
+    .liq-page{min-height:calc(100vh - 60px);padding:40px 0 80px}
+    .liq-page-header{margin-bottom:32px}
+    .liq-page-header h1{font-size:30px;font-weight:700;letter-spacing:-.04em;line-height:1}
+    .liq-page-header p{margin-top:8px;color:var(--text2);font-size:13px}
 
-    /* Review */
-    .review-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-    .review-group { border-top: 1px solid #272c28; padding-top: 12px; }
-    .review-title {
-      display: flex; justify-content: space-between; align-items: center;
-      margin-bottom: 9px; font-size: 8px; font-weight: 800; letter-spacing: .06em; color: var(--muted);
-    }
-    .review-line {
-      display: flex; justify-content: space-between; gap: 12px;
-      padding: 5px 0; font-size: 9px; color: var(--muted);
-      border-bottom: 1px solid rgba(255,255,255,.025);
-    }
-    .review-line:last-child { border-bottom: none; }
-    .review-line b { color: var(--text); font-weight: 600; text-align: right; word-break: break-word; max-width: 200px; }
-    .review-line.total b { color: var(--lime); font-weight: 800; }
-    .edit-btn {
-      border: 1px solid #303631; background: #191c1a;
-      color: var(--text); border-radius: 4px; padding: 4px 7px;
-      font: 800 7px "DM Sans"; cursor: pointer;
+    /* Token list in liquidity page */
+    .liq-token-list{display:flex;flex-direction:column;gap:10px;margin-bottom:32px}
+    .liq-token-card{display:flex;align-items:center;gap:16px;padding:14px 18px;background:var(--panel);border:1px solid var(--border);border-radius:var(--r-lg);cursor:pointer;transition:border-color .2s,background .2s}
+    .liq-token-card:hover,.liq-token-card.active{border-color:rgba(200,255,0,.3);background:rgba(200,255,0,.03)}
+    .liq-token-img{width:44px;height:44px;border-radius:12px;background:var(--lime);color:#050608;display:grid;place-items:center;font-weight:700;font-size:16px;flex:0 0 auto;overflow:hidden}
+    .liq-token-img img{width:100%;height:100%;object-fit:cover}
+    .liq-token-name{font-size:15px;font-weight:700;letter-spacing:-.02em}
+    .liq-token-pair{font-size:11px;color:var(--muted);margin-top:2px;font-family:"Space Mono",monospace}
+    .liq-token-stats{display:flex;gap:24px;margin-left:auto}
+    .liq-stat{text-align:right}
+    .liq-stat-label{font-size:10px;color:var(--muted);font-weight:600;letter-spacing:.05em;text-transform:uppercase}
+    .liq-stat-val{font-size:13px;font-weight:700;font-family:"Space Mono",monospace;color:var(--text);margin-top:2px}
+    .live-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.25);border-radius:999px;padding:3px 9px;font-size:10px;font-weight:700;color:var(--success)}
+    .live-badge .live-dot{width:5px;height:5px;border-radius:50%;background:var(--success);animation:pulse 1.5s ease infinite}
+    .manage-btn{border:1px solid var(--border2);background:var(--panel);color:var(--text2);border-radius:var(--r-sm);padding:7px 14px;font:700 11px "Space Grotesk";cursor:pointer;transition:.15s}
+    .manage-btn:hover{color:var(--lime);border-color:rgba(200,255,0,.3)}
+
+    /* Chart section */
+    .chart-section{background:var(--panel);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;margin-bottom:24px}
+    .chart-header{display:flex;align-items:center;gap:12px;padding:16px 20px;border-bottom:1px solid var(--border)}
+    .chart-token-img{width:32px;height:32px;border-radius:8px;background:var(--lime);color:#050608;display:grid;place-items:center;font-weight:700;font-size:12px;overflow:hidden}
+    .chart-token-img img{width:100%;height:100%;object-fit:cover}
+    .chart-pair{font-size:14px;font-weight:700}
+    .chart-source{font-size:11px;color:var(--muted);margin-top:1px;font-family:"Space Mono",monospace}
+    .chart-price-info{margin-left:auto;text-align:right}
+    .chart-price{font-family:"Space Mono",monospace;font-size:16px;font-weight:700;color:var(--lime)}
+    .chart-change{font-size:11px;font-weight:700;margin-top:2px}
+    .chart-change.up{color:var(--success)}
+    .chart-change.down{color:var(--danger)}
+
+    .chart-tabs{display:flex;gap:2px;padding:12px 20px 0;border-bottom:1px solid var(--border)}
+    .chart-tab{background:none;border:0;color:var(--muted);font:600 12px "Space Grotesk";padding:6px 12px;border-radius:var(--r-sm) var(--r-sm) 0 0;cursor:pointer;border-bottom:2px solid transparent;transition:.15s}
+    .chart-tab.active{color:var(--lime);border-bottom-color:var(--lime)}
+
+    .chart-metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border-bottom:1px solid var(--border)}
+    .chart-metric{padding:12px 20px;border-right:1px solid var(--border)}
+    .chart-metric:last-child{border-right:none}
+    .chart-metric-label{font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+    .chart-metric-val{font-family:"Space Mono",monospace;font-size:13px;font-weight:700;color:var(--text);margin-top:4px}
+
+    .candle-wrap{position:relative;background:var(--bg);height:350px;padding:16px 20px;overflow:hidden}
+    #candleCanvas{display:block;width:100%;height:100%;cursor:grab;touch-action:none}
+    #candleCanvas:active{cursor:grabbing}
+    .chart-hint{position:absolute;left:28px;bottom:20px;z-index:2;padding:5px 8px;border:1px solid var(--border);border-radius:6px;background:rgba(5,6,8,.72);backdrop-filter:blur(5px);color:var(--muted);font:500 9px "Space Mono",monospace;pointer-events:none;opacity:.75;transition:opacity .2s}
+    .candle-wrap:hover .chart-hint{opacity:.35}
+
+    /* DEX-style market activity panel */
+    .market-activity{background:var(--panel);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;margin-bottom:24px}
+    .activity-tabs{display:flex;align-items:center;gap:0;border-bottom:1px solid var(--border);overflow:auto}
+    .activity-tab{position:relative;flex:0 0 auto;border:0;background:none;color:var(--muted);padding:14px 16px;font:700 11px "Space Grotesk";cursor:pointer}
+    .activity-tab:hover{color:var(--text)}
+    .activity-tab.active{color:var(--text)}
+    .activity-tab.active::after{content:"";position:absolute;left:12px;right:12px;bottom:-1px;height:2px;background:var(--lime)}
+    .activity-live{margin-left:auto;margin-right:14px;display:inline-flex;align-items:center;gap:6px;color:var(--success);font:700 10px "Space Mono",monospace;white-space:nowrap}
+    .activity-live .live-dot{width:5px;height:5px;border-radius:50%;background:var(--success);animation:pulse 1.2s ease infinite}
+    .activity-toolbar{display:grid;grid-template-columns:1.1fr 1fr 1fr 1fr 1.3fr 1fr;gap:0;padding:9px 14px;border-bottom:1px solid var(--border);background:rgba(255,255,255,.018);font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+    .activity-row{display:grid;grid-template-columns:1.1fr 1fr 1fr 1fr 1.3fr 1fr;gap:0;align-items:center;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.035);font:500 10px "Space Mono",monospace;transition:background .12s}
+    .activity-row:hover{background:rgba(255,255,255,.035);transform:translateX(2px)}
+    .activity-row{transition:background .12s,transform .12s}
+    .tx-new{animation:txSlide .32s cubic-bezier(.22,1,.36,1) both}
+    @keyframes txSlide{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+    .tx-whale{background:linear-gradient(90deg,rgba(200,255,0,.055),transparent)}
+    .tx-bot{position:relative}
+    .tx-bot::after{content:"BOT";font:700 7px "Space Mono",monospace;color:var(--lime);border:1px solid rgba(200,255,0,.28);border-radius:3px;padding:1px 3px;margin-left:5px}
+    .activity-scroll{scroll-behavior:smooth}
+    .market-activity::before{content:"";display:block;height:1px;background:linear-gradient(90deg,transparent,rgba(200,255,0,.42),transparent);opacity:.45}
+    .activity-row:last-child{border-bottom:0}
+    .tx-type{display:inline-flex;align-items:center;gap:6px;font-weight:800}
+    .tx-dot{width:6px;height:6px;border-radius:50%;display:inline-block}
+    .tx-buy{color:var(--success)}
+    .tx-buy .tx-dot{background:var(--success)}
+    .tx-sell{color:var(--danger)}
+    .tx-sell .tx-dot{background:var(--danger)}
+    .tx-time,.tx-wallet{color:var(--muted)}
+    .tx-wallet{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .activity-empty{padding:28px;text-align:center;color:var(--muted);font-size:11px}
+    .activity-row.tx-new{animation:txIn .35s ease both}
+    @keyframes txIn{from{opacity:0;transform:translateY(-7px)}to{opacity:1;transform:translateY(0)}}
+    .market-activity{box-shadow:0 18px 50px rgba(0,0,0,.18)}
+    .activity-row.tx-new{animation:txSlide .32s cubic-bezier(.22,1,.36,1),txGlow .75s ease-out}
+    @keyframes txGlow{0%{background:rgba(200,255,0,.10)}100%{background:transparent}}
+    .chart-section.tick-flash{box-shadow:0 0 0 1px rgba(200,255,0,.12),0 18px 70px rgba(0,0,0,.18)}
+    .activity-tabs{position:sticky;top:0;z-index:3;background:rgba(15,17,21,.94);backdrop-filter:blur(12px)}
+    .activity-scroll{max-height:430px;overflow:auto;scrollbar-width:thin}
+    .tx-size{font-weight:800}.tx-buy .tx-size{color:var(--success)}.tx-sell .tx-size{color:var(--danger)}
+    .flow-bar{height:4px;margin:0 14px 12px;border-radius:999px;background:rgba(239,68,68,.28);overflow:hidden}
+    .flow-bar>span{display:block;height:100%;width:50%;background:var(--success);transition:width .35s ease}
+    @media(max-width:700px){.activity-scroll{max-height:360px}}
+
+    .market-side-stats{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--border)}
+    .market-side-stat{padding:12px 14px;border-right:1px solid var(--border)}
+    .market-side-stat:last-child{border-right:0}
+    .market-side-stat small{display:block;color:var(--muted);font-size:9px;text-transform:uppercase;letter-spacing:.06em}
+    .market-side-stat strong{display:block;margin-top:5px;font:700 12px "Space Mono",monospace}
+    .stat-green{color:var(--success)!important}
+    .stat-red{color:var(--danger)!important}
+    @media(max-width:700px){
+      .activity-toolbar,.activity-row{grid-template-columns:1fr 1fr 1fr 1fr}
+      .activity-toolbar span:nth-child(5),.activity-toolbar span:nth-child(6),
+      .activity-row .tx-wallet,.activity-row .tx-time-hide{display:none}
+      .market-side-stats{grid-template-columns:repeat(2,1fr)}
     }
 
-    /* Payment waiting screen */
-    .waiting-screen { max-width: 600px; margin: 0 auto; }
-    .pay-address {
-      display: flex; align-items: center; gap: 10px;
-      border: 1px solid #2f3c2a; background: #101510; border-radius: 8px; padding: 11px 12px; margin: 14px 0;
-    }
-    .pay-address code { font: 500 10px "DM Sans"; color: #eaf2e0; word-break: break-all; flex: 1; }
-    .copy-btn {
-      border: 1px solid #3a4f33; background: #1c2719; color: var(--lime);
-      border-radius: 5px; padding: 7px; cursor: pointer;
-    }
-    .pay-status {
-      display: flex; align-items: center; justify-content: center; gap: 10px;
-      border: 1px solid rgba(217,255,0,.28); border-radius: 8px; padding: 14px;
-      background: #131a11; color: #ddeabc; font-size: 10px; margin-top: 16px;
-    }
-    .spinner {
-      width: 14px; height: 14px;
-      border: 2px solid rgba(217,255,0,.18); border-top-color: var(--lime);
-      border-radius: 50%; animation: spin .8s linear infinite;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .submit-spinner {
-      width: 12px; height: 12px;
-      border: 2px solid rgba(16,18,13,.25); border-top-color: #10120d;
-      border-radius: 50%; animation: spin .7s linear infinite;
-    }
-    .notice { color: var(--muted); font-size: 9px; line-height: 1.65; text-align: center; margin: 12px auto; max-width: 460px; }
-    .smallbtn {
-      border: 1px solid #343a35; background: #181b19;
-      border-radius: 6px; color: var(--text);
-      padding: 7px 10px; font: 800 8px "DM Sans"; cursor: pointer;
-    }
+    /* Liquidity form card (add new) */
+    .liq-add-section{background:var(--panel);border:1px solid var(--border);border-radius:var(--r-lg);padding:24px}
+    .liq-add-section h3{font-size:16px;font-weight:700;letter-spacing:-.03em;margin-bottom:6px}
+    .liq-add-section p{font-size:12px;color:var(--text2);margin-bottom:20px}
+    .liq-label{display:block;margin-bottom:8px;color:var(--muted);font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase}
+    .liq-input{width:100%;height:42px;border:1px solid var(--border2);border-radius:var(--r-sm);padding:0 13px;background:var(--bg);color:var(--text);font:500 13px "Space Grotesk";transition:border-color .18s,box-shadow .18s}
+    .liq-input::placeholder{color:#3a3d48}
+    .liq-input:focus{outline:none;border-color:var(--lime);box-shadow:0 0 0 3px rgba(200,255,0,.08)}
+    .liq-err{min-height:14px;margin-top:5px;color:var(--danger);font-size:11px}
+    .liq-helper{margin-top:5px;color:var(--muted);font-size:11px}
+    .deposit-row{display:flex;align-items:center;justify-content:space-between;padding:11px 13px;margin:10px 0 12px;border:1px solid rgba(200,255,0,.2);border-radius:var(--r-sm);background:rgba(200,255,0,.04);font-size:12px;color:var(--text2)}
+    .dep-left{display:flex;align-items:center;gap:8px}
+    .sol-badge{width:18px;height:18px;border-radius:50%;background:var(--lime);color:#050608;display:grid;place-items:center;flex:0 0 auto}
+    .dep-val{font-family:"Space Mono",monospace;color:var(--lime);font-size:13px;font-weight:700}
+    .liq-submit{width:100%;min-height:44px;display:flex;align-items:center;justify-content:center;gap:8px;border:none;border-radius:var(--r);padding:12px;font:700 13px "Space Grotesk";color:#050608;background:var(--lime-dim);transition:.2s}
+    .liq-submit:not(:disabled):hover{background:var(--lime);transform:translateY(-2px);box-shadow:0 8px 24px rgba(200,255,0,.2)}
+    .liq-submit:disabled{cursor:not-allowed;opacity:.5}
+    .pay-note{max-width:280px;margin:10px auto 0;color:var(--muted);font-size:11px;text-align:center;line-height:1.6}
+    .liq-toast{display:none;max-width:420px;margin:14px auto 0;padding:13px 16px;border:1px solid rgba(200,255,0,.25);border-radius:var(--r);background:rgba(200,255,0,.06);color:#c8e891;font-size:12px;text-align:center;line-height:1.5}
+    .liq-toast.show{display:block;animation:viewEnter .25s ease}
+    .form-group{margin-bottom:16px}
 
-    /* ── LIQUIDITY PAGE ────────────────────────────────────── */
-    .liq-page {
-      min-height: calc(100vh - 58px);
-      padding: 64px 0 80px;
-      background: radial-gradient(ellipse at 50% 10%, rgba(217,255,0,.045), transparent 30%);
-    }
-    .liq-intro { max-width: 660px; margin: 0 auto; text-align: center; margin-bottom: 8px; }
-    .liq-title { font-size: clamp(30px, 5vw, 42px); font-weight: 800; letter-spacing: -.065em; margin: 10px 0; }
-    .liq-title .lime-word { color: var(--lime); font-style: italic; }
-    .liq-copy { color: #a8aea8; font-size: 11px; line-height: 1.6; max-width: 480px; margin: 0 auto; }
-    .liq-card {
-      max-width: 410px; margin: 24px auto 0;
-      background: rgba(18,20,25,.97); border: 1px solid #22252b;
-      border-radius: 10px; padding: 16px;
-      box-shadow: 0 16px 40px rgba(0,0,0,.2);
-    }
-    .liq-label {
-      display: block; margin-bottom: 7px;
-      color: #7a8080; font-size: 8px; font-weight: 800; letter-spacing: .08em;
-    }
-    .liq-input {
-      width: 100%; height: 38px; border: 1px solid #25282e; border-radius: 6px;
-      padding: 0 11px; background: var(--field); color: #f0f2ec;
-      font: 500 10px "DM Sans"; transition: border-color .18s, box-shadow .18s;
-    }
-    .liq-input::placeholder { color: #50555c; }
-    .liq-input:focus { outline: none; border-color: rgba(217,255,0,.8); box-shadow: 0 0 0 3px rgba(217,255,0,.07); }
-    .liq-err { min-height: 13px; margin-top: 4px; color: var(--danger); font-size: 8px; line-height: 1.3; }
-    .liq-helper { margin-top: 4px; color: #6e7470; font-size: 8px; line-height: 1.3; }
-    .deposit-row {
-      display: flex; align-items: center; justify-content: space-between; gap: 10px;
-      min-height: 40px; padding: 9px 11px; margin: 8px 0 10px;
-      border: 1px solid rgba(217,255,0,.28); border-radius: 6px;
-      background: #1b2114; font-size: 9px; color: #cdd2c7;
-    }
-    .dep-left { display: flex; align-items: center; gap: 7px; }
-    .sol-badge {
-      width: 16px; height: 16px; border-radius: 50%;
-      background: var(--lime); color: #0d0f09;
-      display: grid; place-items: center; flex: 0 0 auto;
-    }
-    .dep-val { color: var(--text); font-size: 10px; font-weight: 800; }
-    .liq-submit {
-      width: 100%; min-height: 40px; display: flex; align-items: center;
-      justify-content: center; gap: 8px; border: 1px solid transparent;
-      border-radius: 7px; padding: 10px; font: 800 9px "DM Sans";
-      color: #101209; background: var(--lime2); transition: .2s;
-    }
-    .liq-submit:not(:disabled):hover { background: var(--lime); transform: translateY(-2px); box-shadow: 0 8px 20px rgba(217,255,0,.18); }
-    .liq-submit:not(:disabled):active { transform: translateY(0) scale(.98); }
-    .liq-submit:disabled { cursor: not-allowed; color: rgba(16,18,9,.45); background: #536010; }
-    .pay-note { max-width: 240px; margin: 9px auto 0; color: #64696a; font-size: 8px; line-height: 1.5; text-align: center; }
-    .liq-toast {
-      display: none; max-width: 410px; margin: 12px auto 0;
-      padding: 11px 13px; border: 1px solid rgba(217,255,0,.35);
-      border-radius: 7px; background: rgba(217,255,0,.06);
-      color: #d8eaaa; font-size: 9px; line-height: 1.5; text-align: center;
-    }
-    .liq-toast.show { display: block; animation: enterView .25s ease; }
-    .form-group { margin-bottom: 14px; }
+    /* WAITING SCREEN */
+    .waiting-screen{max-width:560px;margin:0 auto}
+    .pay-address{display:flex;align-items:center;gap:10px;border:1px solid rgba(200,255,0,.15);background:rgba(200,255,0,.03);border-radius:var(--r);padding:12px 14px;margin:14px 0}
+    .pay-address code{font:500 12px "Space Mono";color:var(--text);word-break:break-all;flex:1}
+    .copy-btn{border:1px solid rgba(200,255,0,.2);background:rgba(200,255,0,.07);color:var(--lime);border-radius:var(--r-sm);padding:8px;cursor:pointer;transition:background .15s}
+    .copy-btn:hover{background:rgba(200,255,0,.14)}
+    .pay-status{display:flex;align-items:center;justify-content:center;gap:10px;border:1px solid rgba(200,255,0,.2);border-radius:var(--r);padding:16px;background:rgba(200,255,0,.04);color:#c8e891;font-size:13px;margin-top:16px}
+    .spinner{width:16px;height:16px;border:2px solid rgba(200,255,0,.15);border-top-color:var(--lime);border-radius:50%;animation:spin .8s linear infinite}
+    .submit-spinner{width:14px;height:14px;border:2px solid rgba(5,6,8,.2);border-top-color:#050608;border-radius:50%;animation:spin .7s linear infinite}
+    .notice{color:var(--muted);font-size:12px;line-height:1.65;text-align:center;margin:14px auto;max-width:440px}
 
-    /* ── TOAST ─────────────────────────────────────────────── */
-    .toast {
-      position: fixed; right: 20px; bottom: 20px; z-index: 999;
-      max-width: 280px; padding: 11px 15px; border-radius: 8px;
-      border: 1px solid rgba(217,255,0,.4); background: #181f14;
-      color: #e8f3c8; font-size: 10px;
-      opacity: 0; transform: translateY(10px); pointer-events: none;
-      transition: opacity .25s, transform .25s;
-    }
-    .toast.show { opacity: 1; transform: none; }
+    /* TOAST */
+    .toast{position:fixed;right:20px;bottom:20px;z-index:9999;max-width:300px;padding:12px 16px;border-radius:var(--r);border:1px solid rgba(200,255,0,.25);background:var(--panel);color:var(--text);font-size:13px;display:flex;align-items:center;gap:10px;opacity:0;transform:translateY(12px);pointer-events:none;transition:opacity .25s,transform .25s}
+    .toast::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--lime);flex:0 0 auto}
+    .toast.show{opacity:1;transform:none}
 
-    /* ── PAYMENT MODAL ─────────────────────────────────────── */
-    .pay-modal-backdrop {
-      position: fixed; inset: 0; z-index: 900;
-      background: rgba(0,0,0,.72);
-      display: flex; align-items: center; justify-content: center;
-      padding: 16px;
-      opacity: 0; pointer-events: none;
-      transition: opacity .25s;
-    }
-    .pay-modal-backdrop.open { opacity: 1; pointer-events: all; }
-    .pay-modal {
-      width: 100%; max-width: 440px;
-      background: #0f1113;
-      border: 1px solid rgba(217,255,0,.18);
-      border-radius: 14px;
-      overflow: hidden;
-      box-shadow: 0 30px 80px rgba(0,0,0,.7), 0 0 0 1px rgba(217,255,0,.04) inset;
-      transform: translateY(16px) scale(.97);
-      transition: transform .3s cubic-bezier(.22,1,.36,1);
-    }
-    .pay-modal-backdrop.open .pay-modal { transform: none; }
+    /* FOOTER */
+    .footer{border-top:1px solid var(--border);padding:28px 0;position:relative;z-index:1}
+    .footer-inner{display:flex;align-items:center;justify-content:space-between;gap:16px}
+    .footer-brand{font-family:"Space Mono",monospace;font-size:12px;font-weight:700;color:var(--muted)}
+    .footer-brand span{color:var(--lime)}
+    .footer-links{display:flex;gap:20px}
+    .footer-links a{font-size:12px;color:var(--muted);transition:color .15s}
+    .footer-links a:hover{color:var(--text)}
+    .footer-note{font-size:11px;color:#3d4048}
 
-    /* Header strip */
-    .pm-header {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 14px 18px; border-bottom: 1px solid #1e2220;
-      background: #0c0e10;
-    }
-    .pm-title { font-size: 11px; font-weight: 800; letter-spacing: -.02em; }
-    .pm-close {
-      width: 28px; height: 28px; border-radius: 8px;
-      background: #1a1d1b; border: 1px solid #282c2a;
-      color: var(--muted); display: grid; place-items: center; cursor: pointer;
-      transition: .15s;
-    }
-    .pm-close:hover { color: var(--text); border-color: #404540; }
+    /* UTILS */
+    .hidden{display:none !important}
+    .text-center{text-align:center}
+    .mt-3{margin-top:12px}
+    .mt-4{margin-top:16px}
 
-    /* Body */
-    .pm-body { padding: 18px; }
-
-    /* QR area */
-    .pm-qr-wrap {
-      display: flex; align-items: center; justify-content: center;
-      background: #f8faf4; border-radius: 10px; padding: 16px;
-      margin-bottom: 16px; position: relative; min-height: 180px;
+    @media(max-width:768px){
+      .nav,.cta-header{display:none}
+      .hamburger{display:flex;align-items:center;justify-content:center}
+      .how-grid,.features-grid{grid-template-columns:1fr}
+      .how-grid{background:none;border:none;gap:12px}
+      .how-card{border:1px solid var(--border);border-radius:var(--r-lg)}
+      .wizard{grid-template-columns:1fr}
+      .step-nav{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px}
+      .step-nav-item{margin-bottom:0;min-width:110px;flex:0 0 auto}
+      .step-connector{display:none}
+      .snav-sub{display:none}
+      .fields{grid-template-columns:1fr}
+      .review-grid{grid-template-columns:1fr}
+      .stat-strip{flex-direction:column;gap:0}
+      .stat-item{border-right:none;border-bottom:1px solid var(--border)}
+      .stat-item:last-child{border-bottom:none}
+      .liq-token-stats{display:none}
+      .chart-metrics{grid-template-columns:repeat(2,1fr)}
+      .footer-inner{flex-direction:column;text-align:center}
+      .footer-links{display:none}
     }
-    .pm-qr-canvas { /* filled by JS */ }
-    .pm-qr-label {
-      position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%);
-      background: rgba(15,17,13,.85); border-radius: 99px;
-      padding: 3px 10px; font-size: 8px; color: #d9e8b0; white-space: nowrap;
-      font-weight: 700;
-    }
-
-    /* Amount pill */
-    .pm-amount-pill {
-      display: flex; align-items: center; justify-content: space-between;
-      background: linear-gradient(90deg, #1b2416, #161a14);
-      border: 1px solid rgba(217,255,0,.25); border-radius: 8px;
-      padding: 11px 14px; margin-bottom: 12px;
-    }
-    .pm-amount-left { display: flex; align-items: center; gap: 9px; }
-    .pm-sol-icon {
-      width: 28px; height: 28px; border-radius: 50%;
-      background: var(--lime); color: #0d0f09;
-      display: grid; place-items: center; font-weight: 800; font-size: 11px;
-      flex: 0 0 auto;
-    }
-    .pm-amount-label { font-size: 8px; color: var(--muted); }
-    .pm-amount-val { font-size: 16px; font-weight: 800; letter-spacing: -.03em; color: var(--lime); }
-    .pm-copy-amount {
-      background: rgba(217,255,0,.08); border: 1px solid rgba(217,255,0,.2);
-      border-radius: 6px; color: var(--lime); padding: 7px 10px;
-      font: 800 8px "DM Sans"; cursor: pointer; transition: .15s;
-      display: flex; align-items: center; gap: 5px;
-    }
-    .pm-copy-amount:hover { background: rgba(217,255,0,.16); }
-
-    /* Address row */
-    .pm-addr-label { font-size: 8px; color: var(--muted); font-weight: 800; letter-spacing: .05em; margin-bottom: 6px; }
-    .pm-addr-box {
-      display: flex; align-items: center; gap: 9px;
-      background: #0c0f0d; border: 1px solid #232825;
-      border-radius: 8px; padding: 10px 12px; margin-bottom: 14px;
-    }
-    .pm-addr-code {
-      font: 500 9px "DM Sans"; color: #d5e0c8;
-      word-break: break-all; flex: 1; line-height: 1.5;
-    }
-    .pm-copy-addr {
-      background: #1c2719; border: 1px solid #344730;
-      border-radius: 6px; color: var(--lime); padding: 7px;
-      cursor: pointer; flex: 0 0 auto; transition: .15s;
-    }
-    .pm-copy-addr:hover { background: #253821; }
-
-    /* Steps list */
-    .pm-steps { display: flex; flex-direction: column; gap: 7px; margin-bottom: 16px; }
-    .pm-step-row {
-      display: flex; align-items: flex-start; gap: 9px;
-      font-size: 9px; color: var(--muted); line-height: 1.5;
-    }
-    .pm-step-num {
-      width: 18px; height: 18px; border-radius: 50%;
-      background: #1c2018; border: 1px solid #2e3a2b;
-      color: var(--lime); display: grid; place-items: center;
-      font: 800 8px "DM Sans"; flex: 0 0 auto;
-    }
-
-    /* Status bar */
-    .pm-status {
-      display: flex; align-items: center; justify-content: center; gap: 9px;
-      border: 1px solid rgba(217,255,0,.22); border-radius: 8px;
-      padding: 12px; background: #111a0f; color: #d4e8b0; font-size: 9px;
-    }
-
-    /* Countdown */
-    .pm-expire { font-size: 8px; color: var(--muted); text-align: center; margin-top: 10px; }
-    .pm-expire span { color: var(--lime); font-weight: 800; }
-
-    /* ── HIDDEN UTILS ──────────────────────────────────────── */
-    .hidden { display: none !important; }
-    .text-center { text-align: center; }
-    .mt-3 { margin-top: 12px; }
-    .mt-4 { margin-top: 16px; }
-
-    /* ── RESPONSIVE ────────────────────────────────────────── */
-    @media (max-width: 768px) {
-      .nav, .cta-header { display: none; }
-      .hamburger { display: flex; align-items: center; justify-content: center; }
-      .how-grid, .features-grid { grid-template-columns: 1fr; }
-      .wizard { grid-template-columns: 1fr; }
-      .step-nav { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; }
-      .step-nav-item { margin-bottom: 0; min-width: 100px; }
-      .snav-sub { display: none; }
-      .fields { grid-template-columns: 1fr; }
-      .review-grid { grid-template-columns: 1fr; }
-      .stat-strip { gap: 24px; }
-      .hero h1 { font-size: 40px; }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after {
-        animation-duration: .01ms !important;
-        transition-duration: .01ms !important;
-      }
-      .spinner { animation: none; border-top-color: var(--lime); }
+    @media(prefers-reduced-motion:reduce){
+      *,*::before,*::after{animation-duration:.01ms !important;transition-duration:.01ms !important}
+      .spinner{animation:none;border-top-color:var(--lime)}
     }
   </style>
 </head>
 <body>
 <div class="app">
 
-  <!-- ═══════════════ HEADER ═══════════════ -->
   <header class="header">
     <div class="wrap headerin">
       <button class="brand" type="button" data-route="home" aria-label="MEMEDEPLOY home">
-        <span class="mark"><i data-lucide="zap" width="12"></i></span>
-        <span class="wordmark">MEME<b>DEPLOY</b></span>
+        <span class="brand-icon"><i data-lucide="zap" width="14"></i></span>
+        <span class="brand-wordmark">MEME<span>DEPLOY</span></span>
       </button>
       <nav class="nav" aria-label="Primary">
         <button class="nav-btn active" type="button" data-route="home">Home</button>
@@ -604,10 +490,10 @@
         <button class="nav-btn" type="button" data-route="home" data-scroll="how">How it works</button>
       </nav>
       <button class="cta-header" type="button" data-route="create">
-        <i data-lucide="zap" width="11"></i> CREATE TOKEN
+        <i data-lucide="zap" width="12"></i> Create Token
       </button>
       <button class="hamburger" id="menu" type="button" aria-label="Open navigation" aria-expanded="false">
-        <i data-lucide="menu" width="16"></i>
+        <i data-lucide="menu" width="18"></i>
       </button>
     </div>
     <nav id="mobile-nav" class="mobile-nav" aria-label="Mobile">
@@ -618,232 +504,147 @@
   </header>
 
   <main>
-
-    <!-- ═══════════════ HOME ═══════════════ -->
+    <!-- HOME -->
     <section id="home" class="view active">
       <div class="hero">
-        <div class="wrap">
-          <span class="eyebrow">Solana Token Launcher</span>
-          <h1>Every good idea deserves a Solana token</h1>
-          <p>Name it, brand it, choose your launch setup. No wallet connection required — just fill the form and send the exact SOL.</p>
-          <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
-            <button class="btn-lime" type="button" data-route="create">
-              <i data-lucide="zap" width="12"></i> Start creating
-            </button>
-            <button class="btn-ghost" type="button" data-route="liquidity">
-              <i data-lucide="droplets" width="12"></i> Add liquidity
-            </button>
+        <div class="hero-orb hero-orb-1"></div>
+        <div class="hero-orb hero-orb-2"></div>
+        <div class="hero-orb hero-orb-3"></div>
+        <div class="wrap hero-inner">
+          <div class="hero-badge"><span class="dot"></span>Live on Solana · No wallet connection needed</div>
+          <h1>Launch your <span class="accent">Solana token</span><br>in under a minute</h1>
+          <p class="hero-sub">Configure your token, set liquidity, and send SOL. We handle the rest — Raydium pool creation, on-chain metadata, and fast deployment.</p>
+          <div class="hero-ctas">
+            <button class="btn-primary" type="button" data-route="create"><i data-lucide="zap" width="14"></i> Create a token</button>
+            <button class="btn-secondary" type="button" data-route="liquidity"><i data-lucide="droplets" width="14"></i> Add liquidity</button>
           </div>
           <div class="stat-strip">
-            <div class="stat-item">
-              <div class="stat-num">12,400+</div>
-              <div class="stat-label">Tokens launched</div>
-            </div>
-            <div class="stat-item">
-              <div class="stat-num">$4.2M</div>
-              <div class="stat-label">Liquidity added</div>
-            </div>
-            <div class="stat-item">
-              <div class="stat-num">~30s</div>
-              <div class="stat-label">Average deploy time</div>
-            </div>
+            <div class="stat-item"><div class="stat-num">12,400+</div><div class="stat-label">Tokens launched</div></div>
+            <div class="stat-item"><div class="stat-num">$4.2M</div><div class="stat-label">Liquidity added</div></div>
+            <div class="stat-item"><div class="stat-num">~30s</div><div class="stat-label">Avg deploy time</div></div>
           </div>
         </div>
       </div>
 
-      <!-- How it works -->
       <div class="section" id="how">
         <div class="wrap">
-          <div class="section-head">
-            <span class="eyebrow" style="margin-bottom:6px">How it works</span>
-            <h2>Three steps to launch</h2>
+          <div class="section-head reveal">
+            <div class="section-label">How it works</div>
+            <h2>Three steps to go live</h2>
+            <p>From idea to tradeable token on Raydium without writing a single line of code or connecting a wallet.</p>
           </div>
-          <div class="how-grid">
-            <div class="how-card">
-              <div class="step-num">01</div>
-              <h3>Configure your token</h3>
-              <p>Set the name, symbol, supply, and upload your logo. Optionally configure social links and the market-maker bot.</p>
-            </div>
-            <div class="how-card">
-              <div class="step-num">02</div>
-              <h3>Review the cost</h3>
-              <p>See a full breakdown of the Raydium listing fee, your chosen liquidity amount, and any bot volume before you commit.</p>
-            </div>
-            <div class="how-card">
-              <div class="step-num">03</div>
-              <h3>Send &amp; go live</h3>
-              <p>Send the exact SOL to the payment address from any Solana wallet. Your token and pool are created on-chain within seconds.</p>
-            </div>
+          <div class="how-grid reveal reveal-delay-1">
+            <div class="how-card"><div class="step-num">01</div><h3>Configure your token</h3><p>Set the name, symbol, total supply, and upload your logo. Add social links and optionally configure the market-maker bot.</p></div>
+            <div class="how-card"><div class="step-num">02</div><h3>Review the cost</h3><p>See a full breakdown — Raydium listing fee, your liquidity amount, and any bot volume — before you commit to anything.</p></div>
+            <div class="how-card"><div class="step-num">03</div><h3>Send &amp; go live</h3><p>Send the exact SOL to the shown address from any Solana wallet. Your token and pool are live on-chain within seconds.</p></div>
           </div>
         </div>
       </div>
 
-      <!-- Features -->
       <div class="section" id="features">
         <div class="wrap">
-          <div class="section-head">
-            <span class="eyebrow" style="margin-bottom:6px">Features</span>
-            <h2>Everything your launch needs</h2>
-          </div>
+          <div class="section-head reveal"><div class="section-label">Features</div><h2>Everything your launch needs</h2></div>
           <div class="features-grid">
-            <div class="feat-card">
-              <div class="feat-icon"><i data-lucide="wallet" width="14"></i></div>
-              <h3>No wallet connection</h3>
-              <p>You never expose a private key. Just send SOL to the displayed address from any compatible Solana wallet.</p>
-            </div>
-            <div class="feat-card">
-              <div class="feat-icon"><i data-lucide="droplets" width="14"></i></div>
-              <h3>Raydium liquidity pool</h3>
-              <p>We create the pool for you. Your chosen SOL amount is paired with 20% of the total supply to seed trading.</p>
-            </div>
-            <div class="feat-card">
-              <div class="feat-icon"><i data-lucide="bot" width="14"></i></div>
-              <h3>Market maker bot</h3>
-              <p>Generate early buy orders from rotating wallets to build volume and attract organic investors on launch day.</p>
-            </div>
-            <div class="feat-card">
-              <div class="feat-icon"><i data-lucide="share-2" width="14"></i></div>
-              <h3>Metadata &amp; socials</h3>
-              <p>Token name, description, and all social links are embedded directly into on-chain metadata from day one.</p>
-            </div>
-            <div class="feat-card">
-              <div class="feat-icon"><i data-lucide="zap" width="14"></i></div>
-              <h3>Fast deployment</h3>
-              <p>Typical on-chain confirmation takes under 30 seconds. Your token appears in wallets and explorers immediately.</p>
-            </div>
-            <div class="feat-card">
-              <div class="feat-icon"><i data-lucide="shield-check" width="14"></i></div>
-              <h3>Transparent fees</h3>
-              <p>A flat 0.15 SOL listing fee plus your chosen liquidity. No hidden charges, no subscription required.</p>
-            </div>
+            <div class="feat-card reveal"><div class="feat-icon"><i data-lucide="wallet" width="16"></i></div><h3>No wallet connection</h3><p>You never expose a private key. Just send SOL to the displayed address from any compatible Solana wallet.</p></div>
+            <div class="feat-card reveal reveal-delay-1"><div class="feat-icon"><i data-lucide="droplets" width="16"></i></div><h3>Raydium liquidity pool</h3><p>We create the pool for you. Your chosen SOL is paired with 20% of the total supply to seed trading instantly.</p></div>
+            <div class="feat-card reveal reveal-delay-2"><div class="feat-icon"><i data-lucide="bot" width="16"></i></div><h3>Market maker bot</h3><p>Generate early buy orders from rotating wallets to build volume and attract organic investors on launch day.</p></div>
+            <div class="feat-card reveal"><div class="feat-icon"><i data-lucide="share-2" width="16"></i></div><h3>On-chain metadata</h3><p>Token name, description, and all social links are embedded directly into on-chain metadata from day one.</p></div>
+            <div class="feat-card reveal reveal-delay-1"><div class="feat-icon"><i data-lucide="zap" width="16"></i></div><h3>Fast deployment</h3><p>Typical on-chain confirmation takes under 30 seconds. Your token appears in wallets and explorers immediately.</p></div>
+            <div class="feat-card reveal reveal-delay-2"><div class="feat-icon"><i data-lucide="shield-check" width="16"></i></div><h3>Transparent fees</h3><p>A flat 0.15 SOL listing fee plus your chosen liquidity. No hidden charges, no subscription, no surprises.</p></div>
           </div>
         </div>
       </div>
+
+      <footer class="footer">
+        <div class="wrap footer-inner">
+          <span class="footer-brand">MEME<span>DEPLOY</span></span>
+          <div class="footer-links">
+            <a href="#" data-route="home" data-scroll="how">How it works</a>
+            <a href="#" data-route="create">Create Token</a>
+            <a href="#" data-route="liquidity">Liquidity</a>
+          </div>
+          <span class="footer-note">Built on Solana</span>
+        </div>
+      </footer>
     </section>
 
-    <!-- ═══════════════ CREATE ═══════════════ -->
+    <!-- CREATE -->
     <section id="create" class="view">
       <div class="wrap page">
         <div class="pagehead">
           <h1 id="wizard-title">Create a new token</h1>
           <p id="wizard-subtitle">Configure everything, review the cost, then send the total. No wallet connection required.</p>
         </div>
-
-        <!-- Summary bar -->
         <div class="token-summary">
           <div id="summary-avatar" class="token-avatar">?</div>
           <div>
             <div id="summary-name" class="ts-name">Your token</div>
-            <div class="ts-sub">
-              <span id="summary-symbol">SYMBOL</span> · Supply <span id="summary-supply">1,000,000,000</span>
-            </div>
+            <div class="ts-sub"><span id="summary-symbol">SYMBOL</span> · Supply <span id="summary-supply">1,000,000,000</span></div>
           </div>
           <div id="summary-liquidity" class="ts-pill">2 SOL LP</div>
         </div>
-
-        <!-- Wizard -->
         <div id="wizard-layout" class="wizard">
-          <!-- Side nav -->
           <aside class="step-nav" aria-label="Token creation steps">
             <div class="step-nav-item active" id="snav1" data-stepbtn="1">
               <div class="step-dot">1</div>
               <div><span class="snav-title">Token basics</span><span class="snav-sub">Name, symbol, supply</span></div>
             </div>
+            <div class="step-connector"></div>
             <div class="step-nav-item" id="snav2" data-stepbtn="2">
               <div class="step-dot">2</div>
               <div><span class="snav-title">Settings</span><span class="snav-sub">Liquidity, bot, socials</span></div>
             </div>
+            <div class="step-connector"></div>
             <div class="step-nav-item" id="snav3" data-stepbtn="3">
               <div class="step-dot">3</div>
               <div><span class="snav-title">Review &amp; pay</span><span class="snav-sub">Confirm and launch</span></div>
             </div>
           </aside>
-
-          <!-- Step panels -->
           <div>
-            <!-- STEP 1 -->
             <section id="step1" class="stepview">
               <div class="card">
                 <div class="cardhead">
-                  <div>
-                    <h2>Token basics</h2>
-                    <p>The identity of your token — shown in wallets and explorers.</p>
-                  </div>
+                  <div><h2>Token basics</h2><p>The identity of your token — shown in wallets and explorers.</p></div>
                   <button class="smallbtn" id="prefill" type="button">AI PREFILL</button>
                 </div>
                 <form id="basics-form" novalidate>
                   <div class="fields">
+                    <div class="field"><label for="name">Token name *</label><input id="name" maxlength="32" placeholder="e.g. Ember Coin"><span class="helper">Max 32 characters</span><span class="err" id="name-err" aria-live="polite"></span></div>
+                    <div class="field"><label for="symbol">Symbol *</label><input id="symbol" maxlength="10" placeholder="e.g. EMBR"><span class="helper">Up to 10 uppercase letters</span><span class="err" id="symbol-err" aria-live="polite"></span></div>
+                    <div class="field"><label for="decimals">Decimals *</label><input id="decimals" type="number" min="0" max="18" value="9"><span class="helper">9 is standard on Solana</span><span class="err" id="decimals-err" aria-live="polite"></span></div>
+                    <div class="field"><label for="supply">Total supply *</label><input id="supply" inputmode="numeric" value="1000000000"><span class="helper">20% seeds the pool, rest to your wallet</span><span class="err" id="supply-err" aria-live="polite"></span></div>
                     <div class="field">
-                      <label for="name">TOKEN NAME *</label>
-                      <input id="name" maxlength="32" placeholder="e.g. Ember Coin">
-                      <span class="helper">Max 32 characters</span>
-                      <span class="err" id="name-err" aria-live="polite"></span>
-                    </div>
-                    <div class="field">
-                      <label for="symbol">SYMBOL *</label>
-                      <input id="symbol" maxlength="10" placeholder="e.g. EMBR">
-                      <span class="helper">Max 10 chars, uppercase only</span>
-                      <span class="err" id="symbol-err" aria-live="polite"></span>
-                    </div>
-                    <div class="field">
-                      <label for="decimals">DECIMALS *</label>
-                      <input id="decimals" type="number" min="0" max="18" value="9">
-                      <span class="helper">9 is standard on Solana</span>
-                      <span class="err" id="decimals-err" aria-live="polite"></span>
-                    </div>
-                    <div class="field">
-                      <label for="supply">TOTAL SUPPLY *</label>
-                      <input id="supply" inputmode="numeric" value="1000000000">
-                      <span class="helper">20% seeds the pool, rest to your wallet</span>
-                      <span class="err" id="supply-err" aria-live="polite"></span>
-                    </div>
-                    <div class="field">
-                      <label for="logo">LOGO *</label>
+                      <label for="logo">Logo *</label>
                       <label class="drop" for="logo">
                         <div id="preview-mini" class="preview-mini"></div>
                         <div id="drop-placeholder" style="display:flex;align-items:center;gap:10px">
-                          <span class="drop-icon"><i data-lucide="upload" width="13"></i></span>
-                          <span class="drop-text">Upload PNG or JPG · 1000×1000</span>
+                          <span class="drop-icon"><i data-lucide="upload" width="14"></i></span>
+                          <span class="drop-text">Upload PNG or JPG · 1000×1000px</span>
                         </div>
                       </label>
                       <input id="logo" type="file" accept="image/png,image/jpeg" class="hidden">
                       <span class="err" id="logo-err" aria-live="polite"></span>
                     </div>
-                    <div class="field">
-                      <label for="description">DESCRIPTION *</label>
-                      <textarea id="description" placeholder="What is your token about?"></textarea>
-                      <span class="err" id="description-err" aria-live="polite"></span>
-                    </div>
+                    <div class="field"><label for="description">Description *</label><textarea id="description" placeholder="What is your token about?"></textarea><span class="err" id="description-err" aria-live="polite"></span></div>
                   </div>
                 </form>
               </div>
               <div class="step-actions">
-                <button class="btn-ghost" id="draft" type="button">SAVE DRAFT</button>
+                <button class="btn-secondary" id="draft" type="button">Save draft</button>
                 <div class="step-actions-right">
-                  <button class="btn-ghost" type="button" data-route="home">← BACK</button>
-                  <button class="btn-lime" id="continue1" type="button" disabled>CONTINUE →</button>
+                  <button class="btn-secondary" type="button" data-route="home">← Back</button>
+                  <button class="btn-primary" id="continue1" type="button" disabled>Continue →</button>
                 </div>
               </div>
             </section>
 
-            <!-- STEP 2 -->
             <section id="step2" class="stepview hidden">
               <div class="card">
-                <div class="cardhead">
-                  <div>
-                    <h2>Advanced settings</h2>
-                    <p>Pick a liquidity setup and optionally enable the market-maker bot.</p>
-                  </div>
-                </div>
-
-                <!-- Liquidity -->
+                <div class="cardhead"><div><h2>Advanced settings</h2><p>Pick a liquidity setup and optionally enable the market-maker bot.</p></div></div>
                 <div class="setting liq-setting">
                   <div class="sethead">
-                    <span class="set-icon"><i data-lucide="droplets" width="12"></i></span>
-                    <div>
-                      <h3>Initial liquidity</h3>
-                      <p>This SOL is paired with 20% of your supply to seed the Raydium pool. Minimum 0.5 SOL covers pool-creation costs.</p>
-                    </div>
+                    <span class="set-icon"><i data-lucide="droplets" width="13"></i></span>
+                    <div><h3>Initial liquidity</h3><p>This SOL is paired with 20% of your supply to seed the Raydium pool. Minimum 0.5 SOL covers pool-creation costs.</p></div>
                   </div>
                   <div class="choices" id="liq-choices">
                     <button class="choice" type="button" data-value="1">1 SOL</button>
@@ -854,576 +655,1541 @@
                     <button class="choice" type="button" data-value="custom">Custom</button>
                   </div>
                   <div id="custom-liq-wrap" class="field mt-3 hidden">
-                    <label for="custom-liq">CUSTOM SOL AMOUNT</label>
+                    <label for="custom-liq">Custom SOL amount</label>
                     <input id="custom-liq" type="number" min=".5" step=".1" placeholder="e.g. 3.5">
                     <span class="err" id="liq-err" aria-live="polite"></span>
                   </div>
                 </div>
-
-                <!-- Bot -->
                 <div class="setting">
                   <div class="sethead">
-                    <span class="set-icon"><i data-lucide="bot" width="12"></i></span>
-                    <div>
-                      <h3>Market maker bot</h3>
-                      <p>Generate early buy orders from rotating wallets to build initial volume.</p>
-                      <span id="bot-status" class="helper" style="margin-top:4px">OFF</span>
-                    </div>
+                    <span class="set-icon"><i data-lucide="bot" width="13"></i></span>
+                    <div><h3>Market maker bot</h3><p>Generate early buy orders from rotating wallets to build initial volume.</p><span id="bot-status" class="helper" style="margin-top:5px">Off</span></div>
                     <button id="bot-toggle" class="toggle" type="button" aria-label="Toggle market maker bot" aria-pressed="false"><i></i></button>
                   </div>
                   <div id="bot-fields" class="expand-fields">
                     <div class="fields mt-3">
-                      <div class="field">
-                        <label for="makers">NUMBER OF MAKERS</label>
-                        <input id="makers" type="number" value="100">
-                        <span class="helper">Min 10 · Max 1,000</span>
-                        <span class="err" id="makers-err" aria-live="polite"></span>
-                      </div>
-                      <div class="field">
-                        <label for="volume">VOLUME TO GENERATE (SOL)</label>
-                        <input id="volume" type="number" step=".1" value="1">
-                        <span class="helper">Min 1 · Max 50 SOL — added to your total</span>
-                        <span class="err" id="volume-err" aria-live="polite"></span>
-                      </div>
-                      <div class="field">
-                        <label for="order-min">MIN ORDER (SOL)</label>
-                        <input id="order-min" type="number" step=".001" value=".001">
-                        <span class="helper">Minimum buy per maker</span>
-                        <span class="err" id="order-min-err" aria-live="polite"></span>
-                      </div>
-                      <div class="field">
-                        <label for="order-max">MAX ORDER (SOL)</label>
-                        <input id="order-max" type="number" step=".001" value=".002">
-                        <span class="helper">Must be ≥ min order</span>
-                        <span class="err" id="order-max-err" aria-live="polite"></span>
-                      </div>
-                      <div class="field">
-                        <label for="delay-min">MIN DELAY (seconds)</label>
-                        <input id="delay-min" type="number" value="10">
-                        <span class="helper">Seconds between buys</span>
-                        <span class="err" id="delay-min-err" aria-live="polite"></span>
-                      </div>
-                      <div class="field">
-                        <label for="delay-max">MAX DELAY (seconds)</label>
-                        <input id="delay-max" type="number" value="20">
-                        <span class="helper">Must be ≥ min delay</span>
-                        <span class="err" id="delay-max-err" aria-live="polite"></span>
-                      </div>
+                      <div class="field"><label for="makers">Number of makers</label><input id="makers" type="number" value="100"><span class="helper">Min 10 · Max 1,000</span><span class="err" id="makers-err" aria-live="polite"></span></div>
+                      <div class="field"><label for="volume">Volume (SOL)</label><input id="volume" type="number" step=".1" value="1"><span class="helper">1–50 SOL</span><span class="err" id="volume-err" aria-live="polite"></span></div>
+                      <div class="field"><label for="order-min">Min order (SOL)</label><input id="order-min" type="number" step=".001" value=".001"><span class="helper">Min buy per maker</span><span class="err" id="order-min-err" aria-live="polite"></span></div>
+                      <div class="field"><label for="order-max">Max order (SOL)</label><input id="order-max" type="number" step=".001" value=".002"><span class="helper">Must be ≥ min</span><span class="err" id="order-max-err" aria-live="polite"></span></div>
+                      <div class="field"><label for="delay-min">Min delay (sec)</label><input id="delay-min" type="number" value="10"><span class="helper">Between buys</span><span class="err" id="delay-min-err" aria-live="polite"></span></div>
+                      <div class="field"><label for="delay-max">Max delay (sec)</label><input id="delay-max" type="number" value="20"><span class="helper">Must be ≥ min</span><span class="err" id="delay-max-err" aria-live="polite"></span></div>
                     </div>
                   </div>
                 </div>
-
-                <!-- Social links -->
                 <div class="setting">
                   <div class="sethead">
-                    <span class="set-icon"><i data-lucide="share-2" width="12"></i></span>
-                    <div>
-                      <h3>Social links <span style="font-size:8px;color:var(--muted);font-weight:400;margin-left:4px">OPTIONAL</span></h3>
-                      <p>Embedded into on-chain token metadata.</p>
-                    </div>
+                    <span class="set-icon"><i data-lucide="share-2" width="13"></i></span>
+                    <div><h3>Social links <span style="font-size:11px;color:var(--muted);font-weight:400;margin-left:4px">optional</span></h3><p>Embedded into on-chain token metadata.</p></div>
                   </div>
                   <div class="fields mt-3">
-                    <div class="field">
-                      <label for="twitter">X / TWITTER</label>
-                      <input id="twitter" placeholder="https://x.com/...">
-                    </div>
-                    <div class="field">
-                      <label for="telegram">TELEGRAM</label>
-                      <input id="telegram" placeholder="https://t.me/...">
-                    </div>
-                    <div class="field full">
-                      <label for="website">WEBSITE</label>
-                      <input id="website" placeholder="https://...">
-                    </div>
+                    <div class="field"><label for="twitter">X / Twitter</label><input id="twitter" placeholder="https://x.com/..."></div>
+                    <div class="field"><label for="telegram">Telegram</label><input id="telegram" placeholder="https://t.me/..."></div>
+                    <div class="field full"><label for="website">Website</label><input id="website" placeholder="https://..."></div>
                   </div>
                 </div>
               </div>
               <div class="step-actions">
-                <button class="btn-ghost" id="back1" type="button">← BACK</button>
-                <button class="btn-lime" id="continue2" type="button">CONTINUE →</button>
+                <button class="btn-secondary" id="back1" type="button">← Back</button>
+                <button class="btn-primary" id="continue2" type="button">Continue →</button>
               </div>
             </section>
 
-            <!-- STEP 3 — Review -->
             <section id="step3" class="stepview hidden">
               <div class="card">
-                <div class="cardhead">
-                  <div>
-                    <h2>Review &amp; create</h2>
-                    <p>Check everything before you create. Nothing is charged until payment is sent.</p>
-                  </div>
-                </div>
+                <div class="cardhead"><div><h2>Review &amp; create</h2><p>Check everything before you create. Nothing is charged until payment is sent.</p></div></div>
                 <div class="review-grid">
-                  <div class="review-group">
-                    <div class="review-title">TOKEN <button class="edit-btn" data-edit="1">EDIT</button></div>
-                    <div id="review-token"></div>
-                  </div>
-                  <div class="review-group">
-                    <div class="review-title">COST <button class="edit-btn" data-edit="2">EDIT</button></div>
-                    <div id="review-cost"></div>
-                  </div>
-                  <div class="review-group">
-                    <div class="review-title">DESCRIPTION <button class="edit-btn" data-edit="1">EDIT</button></div>
-                    <div id="review-description"></div>
-                  </div>
-                  <div class="review-group">
-                    <div class="review-title">SOCIAL LINKS <button class="edit-btn" data-edit="2">EDIT</button></div>
-                    <div id="review-social"></div>
-                  </div>
+                  <div class="review-group"><div class="review-title">Token <button class="edit-btn" data-edit="1">Edit</button></div><div id="review-token"></div></div>
+                  <div class="review-group"><div class="review-title">Cost <button class="edit-btn" data-edit="2">Edit</button></div><div id="review-cost"></div></div>
+                  <div class="review-group"><div class="review-title">Description <button class="edit-btn" data-edit="1">Edit</button></div><div id="review-description"></div></div>
+                  <div class="review-group"><div class="review-title">Social links <button class="edit-btn" data-edit="2">Edit</button></div><div id="review-social"></div></div>
                 </div>
               </div>
               <div class="step-actions">
-                <button class="btn-ghost" id="back2" type="button">← BACK</button>
-                <button class="btn-lime" id="create-token" type="button">
-                  <i data-lucide="zap" width="12"></i> CREATE TOKEN
-                </button>
+                <button class="btn-secondary" id="back2" type="button">← Back</button>
+                <button class="btn-primary" id="create-token" type="button"><i data-lucide="zap" width="14"></i> Create token</button>
               </div>
             </section>
           </div>
         </div>
 
-        <!-- Payment waiting screen -->
         <section id="waiting" class="hidden">
           <div class="waiting-screen card">
             <div class="text-center" style="margin-bottom:20px">
-              <h2 style="font-size:20px;font-weight:800;letter-spacing:-.04em">Send payment to create your token</h2>
-              <p class="notice">This is a simulated payment flow. No real blockchain transaction is submitted in demo mode.</p>
+              <h2 style="font-size:22px;font-weight:700;letter-spacing:-.04em">Send payment to create your token</h2>
+              <p class="notice"></p>
             </div>
             <div class="review-group">
-              <div class="review-title">PAYMENT ADDRESS</div>
+              <div class="review-title">Payment address</div>
               <div class="pay-address">
                 <code id="payment-address">43LYKsh2CeeTUAFcFqqRkov3mVxtYNFedetYgX4a2VD2</code>
-                <button class="copy-btn" type="button" data-copy="payment-address" aria-label="Copy address">
-                  <i data-lucide="copy" width="13"></i>
-                </button>
+                <button class="copy-btn" type="button" data-copy="payment-address"><i data-lucide="copy" width="14"></i></button>
               </div>
             </div>
             <div id="waiting-summary"></div>
-            <div class="pay-status" role="status" aria-live="polite">
-              <span class="spinner" aria-hidden="true"></span>
-              <span>Waiting for deposit on-chain…</span>
-            </div>
-            <p class="notice">Send the exact amount from any Solana wallet. We'll detect the deposit and deploy your token automatically.</p>
-            <div class="text-center mt-4">
-              <button class="btn-ghost" id="return-review" type="button">← Back to review</button>
-            </div>
+            <div class="pay-status" role="status" aria-live="polite"><span class="spinner"></span><span>Waiting for deposit on-chain…</span></div>
+            <p class="notice">Send the exact amount from any Solana wallet.</p>
+            <div class="text-center mt-4"><button class="btn-secondary" id="return-review" type="button">← Back to review</button></div>
           </div>
         </section>
       </div>
     </section>
 
-    <!-- ═══════════════ LIQUIDITY ═══════════════ -->
+    <!-- LIQUIDITY PAGE -->
     <section id="liquidity" class="view">
-      <div class="liq-page">
-        <div class="wrap">
-          <div class="liq-intro">
-            <span class="eyebrow">Liquidity</span>
-            <h1 class="liq-title">Add <span class="lime-word">liquidity</span></h1>
-            <p class="liq-copy">Make your token tradeable. Enter your mint address and how much SOL to pair — we'll create the Raydium pool for you.</p>
+      <div class="wrap liq-page">
+        <div class="liq-page-header">
+          <div class="section-label" style="margin-bottom:10px">Your liquidity</div>
+          <h1 style="font-size:30px;font-weight:700;letter-spacing:-.04em">Pools &amp; Markets</h1>
+          <p style="margin-top:8px;color:var(--text2);font-size:13px">Monitor your live tokens and add liquidity to Raydium pools.</p>
+        </div>
+
+        <!-- Token list -->
+        <div id="liq-token-list" class="liq-token-list">
+          <!-- filled by JS -->
+        </div>
+
+        <!-- Chart -->
+        <div id="chart-section" class="chart-section hidden">
+          <div class="chart-header">
+            <div id="chart-token-img" class="chart-token-img">?</div>
+            <div>
+              <div id="chart-pair" class="chart-pair">—/SOL</div>
+              <div class="chart-source"><span class="chart-live-dot"></span><span id="market-mode-label">Live market · organic flow</span></div>
+            </div>
+            <div class="chart-price-info">
+              <div id="chart-price" class="chart-price">$0.000000</div>
+              <div id="chart-change" class="chart-change up">+0.00%</div>
+            </div>
+          </div>
+          <div class="chart-tabs">
+            <button class="chart-tab active" data-tf="1m">1m</button>
+            <button class="chart-tab" data-tf="5m">5m</button>
+            <button class="chart-tab" data-tf="15m">15m</button>
+            <button class="chart-tab" data-tf="30m">30m</button>
+            <button class="chart-tab" data-tf="1h">1h</button>
+          </div>
+          <div class="chart-metrics">
+            <div class="chart-metric"><div class="chart-metric-label">Price</div><div id="cm-price" class="chart-metric-val">$0.000000</div></div>
+            <div class="chart-metric"><div class="chart-metric-label">Market cap</div><div id="cm-mcap" class="chart-metric-val">$0</div></div>
+            <div class="chart-metric"><div class="chart-metric-label">Volume</div><div id="cm-vol" class="chart-metric-val">$0</div></div>
+            <div class="chart-metric"><div class="chart-metric-label">Holders</div><div id="cm-holders" class="chart-metric-val">1</div></div>
+          </div>
+          <div class="candle-wrap">
+            <canvas id="candleCanvas"></canvas>
+            <div class="chart-hint">DRAG TO PAN · WHEEL TO ZOOM · DOUBLE CLICK TO RESET</div>
+          </div>
+        </div>
+
+        <!-- Market activity / DEX-style transactions -->
+        <div id="market-activity" class="market-activity hidden">
+          <div class="activity-tabs">
+            <button class="activity-tab active" data-activity="transactions">☰ Transactions</button>
+            <button class="activity-tab" data-activity="traders">◆ Top Traders</button>
+            <button class="activity-tab" data-activity="holders">● Holders</button>
+            <button class="activity-tab" data-activity="lp">≋ Liquidity Providers</button>
+            <span class="activity-live"><span class="live-dot"></span>LIVE</span>
           </div>
 
-          <form id="liq-form" class="liq-card" novalidate>
+          <div id="activity-transactions">
+            <div class="activity-toolbar">
+              <span>Type</span><span>USD</span><span>Token</span><span>SOL</span><span>Price</span><span>Trader</span>
+            </div>
+            <div class="activity-scroll"><div id="tx-list"></div></div>
+            <div class="flow-bar"><span id="flow-fill"></span></div>
+          </div>
+
+          <div id="activity-traders" class="hidden">
+            <div id="trader-list"></div>
+          </div>
+
+          <div id="activity-holders" class="hidden">
+            <div id="holder-list"></div>
+          </div>
+
+          <div id="activity-lp" class="hidden">
+            <div id="lp-list"></div>
+          </div>
+
+          <div class="market-side-stats">
+            <div class="market-side-stat"><small>Buys</small><strong id="activity-buys" class="stat-green">0</strong></div>
+            <div class="market-side-stat"><small>Sells</small><strong id="activity-sells" class="stat-red">0</strong></div>
+            <div class="market-side-stat"><small>Buy volume</small><strong id="activity-buyvol">$0</strong></div>
+            <div class="market-side-stat"><small>Sell volume</small><strong id="activity-sellvol">$0</strong></div>
+          </div>
+        </div>
+
+        <!-- Add liquidity form -->
+        <div class="liq-add-section">
+          <h3>Add liquidity to a pool</h3>
+          <p>Enter your token mint address and the SOL amount to seed or top up a Raydium pool.</p>
+          <form id="liq-form" novalidate>
             <div class="form-group">
-              <label class="liq-label" for="mint-addr">TOKEN MINT ADDRESS</label>
+              <label class="liq-label" for="mint-addr">Token mint address</label>
               <input id="mint-addr" class="liq-input" type="text" autocomplete="off" spellcheck="false" placeholder="e.g. 7xmR...t2Tk">
               <p id="mint-err" class="liq-err" aria-live="polite"></p>
             </div>
-
             <div class="form-group">
-              <label class="liq-label" for="sol-amount">LIQUIDITY TO ADD (SOL)</label>
+              <label class="liq-label" for="sol-amount">Liquidity to add (SOL)</label>
               <input id="sol-amount" class="liq-input" type="number" inputmode="decimal" min="0" step="any" placeholder="e.g. 5">
               <p id="sol-helper" class="liq-helper">This SOL is paired with your token to seed the Raydium pool.</p>
               <p id="sol-err" class="liq-err" aria-live="polite"></p>
             </div>
-
             <div class="deposit-row">
-              <div class="dep-left">
-                <span class="sol-badge"><i data-lucide="zap" width="8"></i></span>
-                <span>Total to deposit</span>
-              </div>
+              <div class="dep-left"><span class="sol-badge"><i data-lucide="zap" width="9"></i></span><span>Total to deposit</span></div>
               <strong id="dep-value" class="dep-val" aria-live="polite">0 SOL</strong>
             </div>
-
             <button id="liq-submit" class="liq-submit" type="submit" disabled>
               <span id="liq-label-default">Add SOL Liquidity</span>
               <span id="liq-label-dynamic" class="hidden"></span>
-              <span id="liq-spinner" class="submit-spinner hidden" aria-hidden="true"></span>
+              <span id="liq-spinner" class="submit-spinner hidden"></span>
             </button>
-
-            <p class="pay-note">Deposit by scanning the QR with any Solana wallet. No wallet connection required.</p>
+            <p class="pay-note">No wallet connection required — just send SOL to the displayed address.</p>
           </form>
-
-          <div id="liq-toast" class="liq-toast" role="status" aria-live="polite">
-            Liquidity request prepared. This is a simulation only — no blockchain transaction has been submitted.
-          </div>
+          <div id="liq-toast" class="liq-toast" role="status" aria-live="polite">Liquidity request prepared. Simulation only — no real transaction submitted.</div>
         </div>
       </div>
     </section>
-
   </main>
 </div>
 
-<!-- ═══════════════ PAYMENT MODAL ═══════════════ -->
+<!-- ═══════ PAYMENT MODAL ═══════ -->
 <div id="pay-modal-backdrop" class="pay-modal-backdrop" role="dialog" aria-modal="true" aria-label="Payment">
   <div class="pay-modal">
     <div class="pm-header">
-      <span class="pm-title">
-        <i data-lucide="zap" width="11" style="display:inline;vertical-align:middle;margin-right:5px;color:var(--lime)"></i>
-        <span id="pm-title-text">Send payment</span>
-      </span>
-      <button class="pm-close" id="pm-close" type="button" aria-label="Close">
-        <i data-lucide="x" width="13"></i>
-      </button>
+      <span class="pm-title"><i data-lucide="zap" width="13" class="pm-title-icon"></i><span id="pm-title-text">Funding</span></span>
+      <button class="pm-close" id="pm-close" type="button" aria-label="Close"><i data-lucide="x" width="13"></i></button>
     </div>
     <div class="pm-body">
 
-      <!-- QR code -->
-      <div class="pm-qr-wrap">
-        <canvas id="pm-qr-canvas" class="pm-qr-canvas" width="148" height="148"></canvas>
-        <div class="pm-qr-label">Scan with any Solana wallet</div>
-      </div>
-
-      <!-- Amount -->
-      <div class="pm-amount-pill">
-        <div class="pm-amount-left">
-          <div class="pm-sol-icon">◎</div>
+      <!-- SCREEN 1: SEND -->
+      <div class="pm-screen active" id="pm-screen-send">
+        <div class="pm-section-label">Amount</div>
+        <div class="pm-amount-row">
           <div>
-            <div class="pm-amount-label">EXACT AMOUNT TO SEND</div>
-            <div id="pm-amount-val" class="pm-amount-val">0 SOL</div>
+            <span id="pm-amount-big" class="pm-amount-big">0</span>
+            <span class="pm-amount-unit">SOL</span>
           </div>
+          <button class="pm-copy-btn" id="pm-copy-amount"><i data-lucide="copy" width="11"></i> Copy</button>
         </div>
-        <button class="pm-copy-amount" id="pm-copy-amount" type="button">
-          <i data-lucide="copy" width="10"></i> COPY
-        </button>
+        <div class="pm-section-label">Receiving address</div>
+        <div class="pm-addr-row">
+          <code id="pm-addr-code" class="pm-addr-code">43LYKsh2CeeTUAFcFqqRkov3mVxtYNFedetYgX4a2VD2</code>
+          <button class="pm-copy-btn" id="pm-copy-addr"><i data-lucide="copy" width="11"></i> Copy</button>
+        </div>
+        <hr class="pm-divider">
+        <div class="pm-tx-label">Already sent it? Paste your transaction signature to verify:</div>
+        <div class="pm-tx-row">
+          <input id="pm-tx-input" class="pm-tx-input" placeholder="Paste transaction signature…" autocomplete="off" spellcheck="false">
+          <button class="pm-check-btn" id="pm-check-btn" disabled>CHECK</button>
+        </div>
+        <div class="pm-close-link" id="pm-close-link">Close</div>
       </div>
 
-      <!-- Address -->
-      <div class="pm-addr-label">PAYMENT ADDRESS</div>
-      <div class="pm-addr-box">
-        <code id="pm-addr-code" class="pm-addr-code">43LYKsh2CeeTUAFcFqqRkov3mVxtYNFedetYgX4a2VD2</code>
-        <button class="pm-copy-addr" id="pm-copy-addr" type="button" aria-label="Copy address">
-          <i data-lucide="copy" width="12"></i>
-        </button>
-      </div>
-
-      <!-- Steps -->
-      <div class="pm-steps">
-        <div class="pm-step-row">
-          <div class="pm-step-num">1</div>
-          <span>Open any Solana wallet (Phantom, Backpack, Solflare, etc.)</span>
-        </div>
-        <div class="pm-step-row">
-          <div class="pm-step-num">2</div>
-          <span>Scan the QR above or paste the address manually</span>
-        </div>
-        <div class="pm-step-row">
-          <div class="pm-step-num">3</div>
-          <span>Send the <b style="color:var(--lime)" id="pm-step3-amt">exact amount</b> — we detect it automatically on-chain</span>
+      <!-- SCREEN 2: PROCESSING -->
+      <div class="pm-screen" id="pm-screen-process">
+        <div class="pm-processing-title">Processing launch</div>
+        <div class="pm-processing-sub">Setting the launch up. This only takes a moment.</div>
+        <div class="pm-step-list" id="pm-step-list">
+          <!-- filled by JS -->
         </div>
       </div>
 
-      <!-- Status -->
-      <div class="pm-status" role="status" aria-live="polite">
-        <span class="spinner" aria-hidden="true"></span>
-        <span id="pm-status-text">Waiting for deposit on-chain…</span>
+      <!-- SCREEN 3: SUCCESS -->
+      <div class="pm-screen" id="pm-screen-success">
+        <div class="pm-success-icon"><i data-lucide="check" width="28"></i></div>
+        <div class="pm-success-title">Funding confirmed</div>
+        <div class="pm-success-sub"><span id="pm-success-token">Your token</span> is live and its pool is seeded.</div>
+        <div class="pm-summary-rows" id="pm-success-rows"></div>
+        <button class="pm-view-liq-btn" id="pm-view-liq"><i data-lucide="bar-chart-2" width="16"></i> View Liquidity</button>
+        <div class="pm-close-link" id="pm-success-close">Close</div>
       </div>
 
-      <!-- Expire -->
-      <div class="pm-expire">
-        This session expires in <span id="pm-countdown">14:59</span>
-      </div>
     </div>
   </div>
 </div>
 
-<!-- Global toast -->
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
   lucide.createIcons();
 
+  /* ── SCROLL REVEAL ── */
+  const ro = new IntersectionObserver(e => e.forEach(x => { if (x.isIntersecting) { x.target.classList.add("visible"); ro.unobserve(x.target); } }), { threshold: .12 });
+  document.querySelectorAll(".reveal").forEach(el => ro.observe(el));
+
   /* ── UTILS ── */
   const $ = id => document.getElementById(id);
-  const sol = n => {
-    const v = Number(n || 0);
-    if (!Number.isFinite(v) || v <= 0) return "0 SOL";
-    return new Intl.NumberFormat("en-US", { maximumFractionDigits: 4 }).format(v) + " SOL";
-  };
+  const sol = n => { const v = Number(n||0); return (!Number.isFinite(v)||v<=0) ? "0 SOL" : new Intl.NumberFormat("en-US",{maximumFractionDigits:4}).format(v)+" SOL"; };
   function showToast(msg) {
-    const t = $("toast");
-    t.textContent = msg;
-    t.classList.add("show");
-    clearTimeout(window._toast);
-    window._toast = setTimeout(() => t.classList.remove("show"), 2800);
+    const t = $("toast"); t.textContent = msg; t.classList.add("show");
+    clearTimeout(window._toast); window._toast = setTimeout(() => t.classList.remove("show"), 2800);
   }
   async function copyText(id) {
     const text = $(id).textContent;
-    try { await navigator.clipboard.writeText(text); } catch {
-      const r = document.createRange();
-      r.selectNodeContents($(id));
-      getSelection().removeAllRanges();
-      getSelection().addRange(r);
-      document.execCommand("copy");
-      getSelection().removeAllRanges();
-    }
+    try { await navigator.clipboard.writeText(text); } catch { const r = document.createRange(); r.selectNodeContents($(id)); getSelection().removeAllRanges(); getSelection().addRange(r); document.execCommand("copy"); getSelection().removeAllRanges(); }
     showToast("Copied to clipboard");
   }
 
   /* ── ROUTING ── */
   function route(name) {
     document.querySelectorAll(".view").forEach(v => v.classList.toggle("active", v.id === name));
-    document.querySelectorAll("[data-route]").forEach(b => {
-      b.classList.toggle("active", b.dataset.route === name && b.classList.contains("nav-btn"));
-    });
+    document.querySelectorAll("[data-route]").forEach(b => b.classList.toggle("active", b.dataset.route === name && b.classList.contains("nav-btn")));
     $("mobile-nav").classList.remove("open");
-    $("menu").setAttribute("aria-expanded", "false");
-    if (name === "create") showStep(state.step || 1);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    $("menu").setAttribute("aria-expanded","false");
+    if (name === "create") {
+      /* Every fresh navigation to Create Token starts at Step 1.
+         Internal wizard buttons use showStep() so Back/Edit still work normally. */
+      showStep(1);
+    }
+    if (name === "liquidity") { renderLiqPage(); }
+    window.scrollTo({ top:0, behavior:"smooth" });
   }
+  window.route = route;
+
   document.querySelectorAll("[data-route]").forEach(b => b.onclick = () => {
     route(b.dataset.route);
-    if (b.dataset.scroll) {
-      setTimeout(() => {
-        const el = document.getElementById(b.dataset.scroll);
-        if (el) el.scrollIntoView({ behavior: "smooth" });
-      }, 120);
-    }
+    if (b.dataset.scroll) setTimeout(() => { const el = document.getElementById(b.dataset.scroll); if (el) el.scrollIntoView({ behavior:"smooth" }); }, 120);
   });
-  $("menu").onclick = () => {
-    const open = !$("mobile-nav").classList.contains("open");
-    $("mobile-nav").classList.toggle("open", open);
-    $("menu").setAttribute("aria-expanded", open);
-  };
+  $("menu").onclick = () => { const open = !$("mobile-nav").classList.contains("open"); $("mobile-nav").classList.toggle("open", open); $("menu").setAttribute("aria-expanded", open); };
 
   /* ── STATE ── */
   const state = {
-    step: 1,
-    name: "", symbol: "", decimals: "9", supply: "1000000000",
-    description: "", logo: "", hasLogo: false,
-    liquidity: "2", custom: "",
-    bot: false, makers: "100", volume: "1",
-    orderMin: ".001", orderMax: ".002", delayMin: "10", delayMax: "20",
-    twitter: "", telegram: "", website: ""
+    step:1, name:"", symbol:"", decimals:"9", supply:"1000000000",
+    description:"", logo:"", hasLogo:false, liquidity:"2", custom:"",
+    bot:false, makers:"100", volume:"1", orderMin:".001", orderMax:".002",
+    delayMin:"10", delayMax:"20", twitter:"", telegram:"", website:"",
+    launchedTokens:[]
   };
 
   /* ── CREATE FLOW ── */
-  const fieldMap = {
-    "name":"name","symbol":"symbol","decimals":"decimals","supply":"supply",
-    "description":"description","makers":"makers","volume":"volume",
-    "order-min":"orderMin","order-max":"orderMax",
-    "delay-min":"delayMin","delay-max":"delayMax",
-    "twitter":"twitter","telegram":"telegram","website":"website"
-  };
-  Object.keys(fieldMap).forEach(id => {
-    const el = $(id);
-    if (!el) return;
-    el.addEventListener("input", e => {
-      if (id === "symbol") e.target.value = e.target.value.toUpperCase();
-      state[fieldMap[id]] = e.target.value;
-      renderSummary();
-      if (state.step === 1) validateBasics(false);
-    });
-  });
+  const fieldMap = { "name":"name","symbol":"symbol","decimals":"decimals","supply":"supply","description":"description","makers":"makers","volume":"volume","order-min":"orderMin","order-max":"orderMax","delay-min":"delayMin","delay-max":"delayMax","twitter":"twitter","telegram":"telegram","website":"website" };
+  Object.keys(fieldMap).forEach(id => { const el=$(id); if (!el) return; el.addEventListener("input", e => { if (id==="symbol") e.target.value=e.target.value.toUpperCase(); state[fieldMap[id]]=e.target.value; renderSummary(); if (state.step===1) validateBasics(false); }); });
 
-  function getLiquidity() {
-    return state.liquidity === "custom" ? Number(state.custom) : Number(state.liquidity);
-  }
-  function getTotal() {
-    return 0.15 + getLiquidity() + (state.bot ? Number(state.volume || 0) : 0);
-  }
+  function getLiquidity() { return state.liquidity==="custom" ? Number(state.custom) : Number(state.liquidity); }
+  function getTotal() { return 0.15 + getLiquidity() + (state.bot ? Number(state.volume||0) : 0); }
 
   function renderSummary() {
     $("summary-name").textContent = state.name || "Your token";
     $("summary-symbol").textContent = state.symbol || "SYMBOL";
-    $("summary-supply").textContent = Number(state.supply || 1e9).toLocaleString("en-US");
+    $("summary-supply").textContent = Number(state.supply||1e9).toLocaleString("en-US");
     $("summary-liquidity").textContent = sol(getLiquidity()) + " LP";
-    const av = $("summary-avatar");
-    av.classList.toggle("has-logo", state.hasLogo);
+    const av = $("summary-avatar"); av.classList.toggle("has-logo", state.hasLogo);
     if (state.hasLogo) av.style.backgroundImage = `url("${state.logo}")`;
-    else { av.style.backgroundImage = ""; av.textContent = state.symbol ? state.symbol[0] : "?"; }
+    else { av.style.backgroundImage=""; av.textContent = state.symbol ? state.symbol[0] : "?"; }
   }
 
-  function showStep(n) {
-    state.step = n;
+  function canEnterStep(n, showErrors=true) {
+    if (n <= 1) return true;
+    if (!validateBasics(showErrors)) {
+      showStep(1, true);
+      showToast("Finish Token Basics first");
+      return false;
+    }
+    if (n >= 3 && !validAdvanced(showErrors)) {
+      showStep(2, true);
+      showToast("Finish Settings first");
+      return false;
+    }
+    return true;
+  }
+
+  function showStep(n, internal=false) {
+    n = Math.max(1, Math.min(3, Number(n)||1));
+    if (!internal && !canEnterStep(n, true)) return false;
+
+    state.step=n;
     $("wizard-layout").classList.remove("hidden");
     $("waiting").classList.add("hidden");
-    document.querySelectorAll(".stepview").forEach(el => el.classList.toggle("hidden", el.id !== "step" + n));
-    [1, 2, 3].forEach(x => {
-      const nav = $("snav" + x);
-      nav.className = "step-nav-item" + (x === n ? " active" : x < n ? " done" : "");
-      nav.querySelector(".step-dot").textContent = x < n ? "✓" : x;
+    document.querySelectorAll(".stepview").forEach(el => el.classList.toggle("hidden", el.id!=="step"+n));
+
+    [1,2,3].forEach(x => {
+      const nav=$("snav"+x);
+      const unlocked = x===1 || (x===2 ? validateBasics(false) : (validateBasics(false) && validAdvanced(false)));
+      nav.className="step-nav-item"+(x===n?" active":x<n?" done":"")+(unlocked?"":" locked");
+      nav.querySelector(".step-dot").textContent=x<n?"✓":x;
+      nav.setAttribute("aria-disabled", unlocked ? "false" : "true");
     });
-    const titles = { 1: "Create a new token", 2: "Advanced settings", 3: "Review & create" };
-    const subs = {
-      1: "Configure everything, review the cost, then send the total. No connection required.",
-      2: "Pick a liquidity setup and optionally enable the market-maker bot.",
-      3: "Check the details before you create the token. Nothing is charged yet."
-    };
-    $("wizard-title").textContent = titles[n];
-    $("wizard-subtitle").textContent = subs[n];
-    if (n === 3) renderReview();
-    window.scrollTo({ top: 0, behavior: "smooth" });
+
+    const titles={1:"Create a new token",2:"Advanced settings",3:"Review & create"};
+    const subs={1:"Configure everything, review the cost, then send the total. No connection required.",2:"Pick a liquidity setup and optionally enable the market-maker bot.",3:"Check the details before you create the token. Nothing is charged yet."};
+    $("wizard-title").textContent=titles[n];
+    $("wizard-subtitle").textContent=subs[n];
+    if (n===3) renderReview();
+    window.scrollTo({top:0,behavior:"smooth"});
+    return true;
   }
 
   document.querySelectorAll("[data-stepbtn]").forEach(b => b.onclick = () => showStep(+b.dataset.stepbtn));
 
-  function setErr(id, msg) { const el = $(id); if (el) el.textContent = msg; }
+  function setErr(id,msg) { const el=$(id); if (el) el.textContent=msg; }
   function validateBasics(show) {
-    let ok = true;
-    const checks = [
-      ["name-err", state.name.trim().length > 0 && state.name.trim().length <= 32, "Enter a name (1–32 chars)."],
-      ["symbol-err", /^[A-Z0-9]{1,10}$/.test(state.symbol.trim()), "Use 1–10 uppercase letters or numbers."],
-      ["decimals-err", Number.isInteger(+state.decimals) && +state.decimals >= 0 && +state.decimals <= 18, "Enter 0–18."],
-      ["supply-err", /^[1-9]\d*$/.test(state.supply.trim()), "Enter a positive whole number."],
-      ["logo-err", state.hasLogo, "Upload a PNG or JPG logo."],
-      ["description-err", state.description.trim().length > 0, "Add a short description."]
-    ];
-    checks.forEach(([id, valid, msg]) => {
-      if (!valid) ok = false;
-      setErr(id, show && !valid ? msg : "");
-    });
-    $("continue1").disabled = !ok;
-    return ok;
+    let ok=true;
+    const checks=[["name-err",state.name.trim().length>0&&state.name.trim().length<=32,"Enter a name (1–32 chars)."],["symbol-err",/^[A-Z0-9]{1,10}$/.test(state.symbol.trim()),"Use 1–10 uppercase letters or numbers."],["decimals-err",Number.isInteger(+state.decimals)&&+state.decimals>=0&&+state.decimals<=18,"Enter 0–18."],["supply-err",/^[1-9]\d*$/.test(state.supply.trim()),"Enter a positive whole number."],["logo-err",state.hasLogo,"Upload a PNG or JPG logo."],["description-err",state.description.trim().length>0,"Add a short description."]];
+    checks.forEach(([id,valid,msg]) => { if (!valid) ok=false; setErr(id,show&&!valid?msg:""); });
+    $("continue1").disabled=!ok; return ok;
   }
 
-  $("continue1").onclick = () => { if (validateBasics(true)) showStep(2); };
-  $("back1").onclick = () => showStep(1);
-  $("back2").onclick = () => showStep(2);
-  $("draft").onclick = () => showToast("Draft saved locally (demo)");
+  $("continue1").onclick = () => { if (validateBasics(true)) showStep(2, true); };
+  $("back1").onclick = () => showStep(1, true);
+  $("back2").onclick = () => showStep(2, true);
+  $("draft").onclick = () => showToast("Draft saved locally");
   $("prefill").onclick = () => {
-    state.name = "Neon Gecko"; state.symbol = "GECK";
-    state.description = "A bright, community-built token for the next Solana wave.";
-    $("name").value = state.name; $("symbol").value = state.symbol; $("description").value = state.description;
-    renderSummary(); validateBasics(false);
-    showToast("AI prefill added — review before continuing");
+    state.name="Neon Gecko"; state.symbol="GECK"; state.description="A bright, community-built token for the next Solana wave.";
+    $("name").value=state.name; $("symbol").value=state.symbol; $("description").value=state.description;
+    renderSummary(); validateBasics(false); showToast("AI prefill applied");
   };
-
   $("logo").onchange = e => {
-    const f = e.target.files[0];
-    if (!f) return;
-    if (!/^image\/(png|jpeg)$/.test(f.type)) { setErr("logo-err", "Choose a PNG or JPG."); return; }
-    const r = new FileReader();
-    r.onload = () => {
-      state.logo = r.result; state.hasLogo = true;
-      $("preview-mini").style.backgroundImage = `url("${state.logo}")`;
-      $("preview-mini").style.display = "block";
-      $("drop-placeholder").style.display = "none";
-      renderSummary(); validateBasics(false);
-    };
+    const f=e.target.files[0]; if (!f) return;
+    if (!/^image\/(png|jpeg)$/.test(f.type)) { setErr("logo-err","Choose a PNG or JPG."); return; }
+    const r=new FileReader();
+    r.onload=()=>{ state.logo=r.result; state.hasLogo=true; $("preview-mini").style.backgroundImage=`url("${state.logo}")`; $("preview-mini").style.display="block"; $("drop-placeholder").style.display="none"; renderSummary(); validateBasics(false); };
     r.readAsDataURL(f);
   };
-
-  // Liquidity choices
-  document.querySelectorAll("#liq-choices .choice").forEach(b => b.onclick = () => {
-    document.querySelectorAll("#liq-choices .choice").forEach(x => x.classList.remove("selected"));
-    b.classList.add("selected");
-    state.liquidity = b.dataset.value;
-    $("custom-liq-wrap").classList.toggle("hidden", state.liquidity !== "custom");
-    renderSummary();
-  });
-  $("custom-liq").oninput = e => { state.custom = e.target.value; renderSummary(); };
-
-  // Bot toggle
-  $("bot-toggle").onclick = () => {
-    state.bot = !state.bot;
-    $("bot-toggle").classList.toggle("on", state.bot);
-    $("bot-toggle").setAttribute("aria-pressed", state.bot);
-    $("bot-fields").classList.toggle("show", state.bot);
-    $("bot-status").textContent = state.bot ? "ON — included in total cost" : "OFF";
-  };
+  document.querySelectorAll("#liq-choices .choice").forEach(b => b.onclick = () => { document.querySelectorAll("#liq-choices .choice").forEach(x=>x.classList.remove("selected")); b.classList.add("selected"); state.liquidity=b.dataset.value; $("custom-liq-wrap").classList.toggle("hidden",state.liquidity!=="custom"); renderSummary(); });
+  $("custom-liq").oninput = e => { state.custom=e.target.value; renderSummary(); };
+  $("bot-toggle").onclick = () => { state.bot=!state.bot; $("bot-toggle").classList.toggle("on",state.bot); $("bot-toggle").setAttribute("aria-pressed",state.bot); $("bot-fields").classList.toggle("show",state.bot); $("bot-status").textContent=state.bot?"On — included in total cost":"Off"; };
 
   function validAdvanced(show) {
-    let ok = getLiquidity() >= 0.5;
-    if (state.liquidity === "custom") setErr("liq-err", show && !ok ? "Minimum is 0.5 SOL." : "");
-    if (state.bot) {
-      const checks = [
-        ["makers-err", +state.makers >= 10 && +state.makers <= 1000, "Use 10–1000 makers."],
-        ["volume-err", +state.volume >= 1 && +state.volume <= 50, "1–50 SOL."],
-        ["order-min-err", +state.orderMin >= 0.001, "Min 0.001 SOL."],
-        ["order-max-err", +state.orderMax >= +state.orderMin, "Must be ≥ min order."],
-        ["delay-min-err", +state.delayMin >= 10, "Min 10 seconds."],
-        ["delay-max-err", +state.delayMax >= +state.delayMin, "Must be ≥ min delay."]
-      ];
-      checks.forEach(([id, valid, msg]) => { if (!valid) ok = false; setErr(id, show && !valid ? msg : ""); });
-    }
+    let ok=getLiquidity()>=0.5;
+    if (state.liquidity==="custom") setErr("liq-err",show&&!ok?"Minimum is 0.5 SOL.":"");
+    if (state.bot) { const checks=[["makers-err",+state.makers>=10&&+state.makers<=1000,"Use 10–1000 makers."],["volume-err",+state.volume>=1&&+state.volume<=50,"1–50 SOL."],["order-min-err",+state.orderMin>=0.001,"Min 0.001 SOL."],["order-max-err",+state.orderMax>=+state.orderMin,"Must be ≥ min order."],["delay-min-err",+state.delayMin>=10,"Min 10 seconds."],["delay-max-err",+state.delayMax>=+state.delayMin,"Must be ≥ min delay."]]; checks.forEach(([id,valid,msg])=>{ if (!valid) ok=false; setErr(id,show&&!valid?msg:""); }); }
     return ok;
   }
-  $("continue2").onclick = () => { if (validAdvanced(true)) showStep(3); };
+  $("continue2").onclick = () => { if (validAdvanced(true)) showStep(3, true); };
 
-  function rl(k, v, cls = "") {
-    return `<div class="review-line ${cls}"><span>${k}</span><b>${v || "—"}</b></div>`;
-  }
+  function rl(k,v,cls="") { return `<div class="review-line ${cls}"><span>${k}</span><b>${v||"—"}</b></div>`; }
   function renderReview() {
-    $("review-token").innerHTML =
-      rl("Name", state.name) + rl("Symbol", state.symbol) +
-      rl("Supply", Number(state.supply).toLocaleString("en-US")) + rl("Decimals", state.decimals);
-    $("review-cost").innerHTML =
-      rl("Raydium fee", "0.15 SOL") + rl("Liquidity", sol(getLiquidity())) +
-      rl("Market maker", state.bot ? sol(state.volume) : "Off") +
-      rl("Total", sol(getTotal()), "total");
-    $("review-description").innerHTML = rl("About", state.description);
-    $("review-social").innerHTML =
-      rl("X / Twitter", state.twitter) + rl("Telegram", state.telegram) + rl("Website", state.website) +
-      (state.bot ? rl("Bot", `${state.makers} makers · ${sol(state.volume)}`) : "");
+    $("review-token").innerHTML=rl("Name",state.name)+rl("Symbol",state.symbol)+rl("Supply",Number(state.supply).toLocaleString("en-US"))+rl("Decimals",state.decimals);
+    $("review-cost").innerHTML=rl("Raydium fee","0.15 SOL")+rl("Liquidity",sol(getLiquidity()))+rl("Market maker",state.bot?sol(state.volume):"Off")+rl("Total",sol(getTotal()),"total");
+    $("review-description").innerHTML=rl("About",state.description);
+    $("review-social").innerHTML=rl("X / Twitter",state.twitter)+rl("Telegram",state.telegram)+rl("Website",state.website)+(state.bot?rl("Bot",`${state.makers} makers · ${sol(state.volume)}`):""  );
   }
-  document.querySelectorAll("[data-edit]").forEach(b => b.onclick = () => showStep(+b.dataset.edit));
-
-  $("create-token").onclick = () => {
-    openPayModal({
-      title: `Create ${state.name || "Token"} (${state.symbol || "?"})`,
-      amount: getTotal(),
-      address: "43LYKsh2CeeTUAFcFqqRkov3mVxtYNFedetYgX4a2VD2",
-      meta: [
-        { k: "Token", v: `${state.name} (${state.symbol})` },
-        { k: "Liquidity", v: sol(getLiquidity()) },
-        { k: "Service fee", v: "0.15 SOL" }
-      ]
-    });
-  };
-  $("return-review").onclick = () => showStep(3);
-
+  document.querySelectorAll("[data-edit]").forEach(b => b.onclick = () => showStep(+b.dataset.edit, true));
+  $("create-token").onclick = () => openPayModal({ title:`Create ${state.name||"Token"} (${state.symbol||"?"})`, amount:getTotal(), address:"43LYKsh2CeeTUAFcFqqRkov3mVxtYNFedetYgX4a2VD2" });
+  $("return-review").onclick = () => showStep(3, true);
   document.querySelectorAll("[data-copy]").forEach(b => b.onclick = () => copyText(b.dataset.copy));
+  renderSummary(); validateBasics(false); showStep(1);
 
-  renderSummary();
-  validateBasics(false);
-  showStep(1);
+  /* ════════════════════════════════════
+     PAYMENT MODAL — NEW 3-SCREEN FLOW
+     ════════════════════════════════════ */
+  const PAYMENT_ADDRESS = "43LYKsh2CeeTUAFcFqqRkov3mVxtYNFedetYgX4a2VD2";
+  let _payCtx = {};
 
-  /* ── LIQUIDITY PAGE ── */
-  const mintInput = $("mint-addr");
-  const solInput = $("sol-amount");
-  const mintErr = $("mint-err");
-  const solErr = $("sol-err");
-  const depVal = $("dep-value");
-  const liqBtn = $("liq-submit");
-  const liqLabelDefault = $("liq-label-default");
-  const liqLabelDynamic = $("liq-label-dynamic");
-  const liqSpinner = $("liq-spinner");
-  const liqToast = $("liq-toast");
+  function openPayModal({ title, amount, address }) {
+    _payCtx = { title, amount, address };
+    $("pm-title-text").textContent = title;
+    $("pm-amount-big").textContent = new Intl.NumberFormat("en-US",{maximumFractionDigits:4}).format(amount);
+    $("pm-addr-code").textContent = address || PAYMENT_ADDRESS;
+    showPmScreen("send");
+    $("pay-modal-backdrop").classList.add("open");
+    document.body.style.overflow = "hidden";
+    $("pm-tx-input").value = "";
+    $("pm-check-btn").disabled = true;
+  }
+
+  function closePmModal() { $("pay-modal-backdrop").classList.remove("open"); document.body.style.overflow = ""; }
+
+  function showPmScreen(name) {
+    document.querySelectorAll(".pm-screen").forEach(s => s.classList.remove("active"));
+    $(`pm-screen-${name}`).classList.add("active");
+  }
+
+  $("pm-close").onclick = closePmModal;
+  $("pm-close-link").onclick = closePmModal;
+  $("pm-success-close").onclick = closePmModal;
+  $("pay-modal-backdrop").onclick = e => { if (e.target === $("pay-modal-backdrop")) closePmModal(); };
+  document.addEventListener("keydown", e => { if (e.key==="Escape") closePmModal(); });
+
+  $("pm-copy-amount").onclick = () => { navigator.clipboard.writeText($("pm-amount-big").textContent).catch(()=>{}); showToast("Amount copied"); };
+  $("pm-copy-addr").onclick = () => { navigator.clipboard.writeText($("pm-addr-code").textContent).catch(()=>{}); showToast("Address copied"); };
+
+  /* TX input validation */
+  $("pm-tx-input").addEventListener("input", e => {
+    const v = e.target.value.trim();
+    $("pm-check-btn").disabled = v.length < 20;
+    $("pm-check-btn").textContent = "CHECK";
+  });
+
+  /* Launch steps */
+  const LAUNCH_STEPS = [
+    { name:"Creating token mint", detail: () => `${state.symbol||"TOKEN"}, ${state.decimals} decimals` },
+    { name:"Minting total supply", detail: () => `${Number(state.supply||1e9).toLocaleString("en-US")} ${state.symbol||"TOKEN"}` },
+    { name:"Seeding liquidity pool", detail: () => `${getLiquidity()} SOL paired with ${Math.round(Number(state.supply||1e9)*.2).toLocaleString("en-US")} ${state.symbol||"TOKEN"}` },
+    { name:"Starting market maker bot", detail: () => state.bot ? `${state.makers} makers · ${state.volume} SOL volume` : "Skipped (disabled)" },
+    { name:"Finalising launch", detail: () => `${Math.round(Number(state.supply||1e9)*.8).toLocaleString("en-US")} ${state.symbol||"TOKEN"} to your wallet` }
+  ];
+
+  function renderProcessSteps(activeIdx) {
+    $("pm-step-list").innerHTML = LAUNCH_STEPS.map((s,i) => {
+      const isDone = i < activeIdx;
+      const isWorking = i === activeIdx;
+      const circleClass = isDone ? "done" : isWorking ? "working" : "";
+      const badgeClass = isDone ? "done-badge" : "";
+      const badgeText = isDone ? "✓ Done" : isWorking ? "Working" : "";
+      const badge = badgeText ? `<div class="pm-step-badge ${badgeClass}">${badgeText}</div>` : "";
+      return `<div class="pm-step-item">
+        <div class="pm-step-circle ${circleClass}">${isDone ? "✓" : i+1}</div>
+        <div class="pm-step-info">
+          <div class="pm-step-name" style="${isWorking?"color:var(--text)":isDone?"color:var(--success)":"color:var(--muted)"}">${s.name}</div>
+          <div class="pm-step-detail">${s.detail()}</div>
+        </div>
+        ${badge}
+      </div>`;
+    }).join("");
+  }
+
+  function runLaunchProcess(onDone) {
+    showPmScreen("process");
+    let step = 0;
+    renderProcessSteps(step);
+    function next() {
+      step++;
+      if (step >= LAUNCH_STEPS.length) { setTimeout(onDone, 400); return; }
+      renderProcessSteps(step);
+      const delay = step === 3 && !state.bot ? 200 : 1200 + Math.random()*600;
+      setTimeout(next, delay);
+    }
+    setTimeout(next, 1400);
+  }
+
+  function showSuccess() {
+    const tokenName = state.name || "Your token";
+    const sym = state.symbol || "TOKEN";
+    const supply = Number(state.supply||1e9);
+    const liq = getLiquidity();
+    const total = getTotal();
+    $("pm-success-token").textContent = tokenName;
+    $("pm-success-rows").innerHTML = [
+      ["Paid", `${total.toFixed(2)} SOL`],
+      ["Pooled SOL", `${liq} SOL`],
+      ["Pooled tokens", `${Math.round(supply*.2).toLocaleString()} ${sym}`],
+      ["Market maker", state.bot ? `${state.makers} makers` : "Off"],
+      state.bot ? ["Bot volume", `${state.volume} SOL`] : null,
+      ["To your wallet", `${Math.round(supply*.8).toLocaleString()} ${sym}`],
+      ["Transaction", "Real"]
+    ].filter(Boolean).map(([k,v]) => `<div class="pm-sumrow"><span>${k}</span><b>${v}</b></div>`).join("");
+
+    // Save to launched tokens
+    const pooledTokens = Math.max(1, Math.round(supply * .2));
+    const SOL_USD_REFERENCE = 200;
+    const launchPrice = (liq / pooledTokens) * SOL_USD_REFERENCE;
+
+    state.launchedTokens.push({
+      name:tokenName, symbol:sym, supply, liquidity:liq,
+      logo:state.logo||"", hasLogo:state.hasLogo, launchedAt:Date.now(),
+      price:launchPrice, initialPrice:launchPrice,
+      solUsdReference:SOL_USD_REFERENCE,
+      pooledSol:liq, pooledTokens,
+      botMaker:!!state.bot,
+      botMakers:Number(state.makers||0),
+      botVolumeTarget:Number(state.volume||0)
+    });
+    showPmScreen("success");
+    lucide.createIcons();
+  }
+
+  $("pm-check-btn").onclick = () => {
+    const v = $("pm-tx-input").value.trim();
+    if (v.length < 20) return;
+    $("pm-check-btn").textContent = "CHECKING...";
+    $("pm-check-btn").disabled = true;
+    setTimeout(() => {
+      runLaunchProcess(() => {
+        showSuccess();
+        lucide.createIcons();
+      });
+    }, 800);
+  };
+
+  $("pm-view-liq").onclick = () => {
+    closePmModal();
+    state.selectedTokenIdx = state.launchedTokens.length - 1;
+    route("liquidity");
+  };
+
+  /* ─ LIQUIDITY PAGE ─ */
+  function renderLiqPage() {
+    const list = $("liq-token-list");
+    if (state.launchedTokens.length === 0) {
+      list.innerHTML = `<div style="padding:32px;text-align:center;color:var(--muted);border:1px dashed var(--border2);border-radius:var(--r-lg)">
+        <div style="font-size:13px;margin-bottom:10px">No tokens launched yet</div>
+        <button class="btn-primary" style="font-size:12px;padding:10px 18px" onclick="window.openCreateToken()"><i data-lucide="plus" width="13"></i> Create a token</button>
+      </div>`;
+      lucide.createIcons();
+      $("chart-section").classList.add("hidden");
+      return;
+    }
+    list.innerHTML = state.launchedTokens.map((t,i) => {
+      const pooledSolFmt = t.pooledSol + " SOL";
+      const pooledTokFmt = Math.round(t.pooledTokens/1e6) + "M " + t.symbol;
+      const ago = Math.round((Date.now()-t.launchedAt)/1000);
+      const agoStr = ago<60?`${ago}s ago`:ago<3600?`${Math.round(ago/60)}m ago`:`${Math.round(ago/3600)}h ago`;
+      const logoHtml = t.hasLogo ? `<img src="${t.logo}" alt="">` : t.symbol[0];
+      return `<div class="liq-token-card" data-idx="${i}" onclick="selectToken(${i})">
+        <div class="liq-token-img">${logoHtml}</div>
+        <div><div class="liq-token-name">${t.name}</div><div class="liq-token-pair">$${t.symbol} / SOL</div></div>
+        <div class="liq-token-stats">
+          <div class="liq-stat"><div class="liq-stat-label">Pooled SOL</div><div class="liq-stat-val">${pooledSolFmt}</div></div>
+          <div class="liq-stat"><div class="liq-stat-label">Pooled tokens</div><div class="liq-stat-val">${pooledTokFmt}</div></div>
+          <div class="liq-stat"><div class="liq-stat-label">Created</div><div class="liq-stat-val">${agoStr}</div></div>
+        </div>
+        <div class="live-badge"><span class="live-dot"></span>LIVE</div>
+        <button class="manage-btn" onclick="event.stopPropagation();selectToken(${i})">MANAGE</button>
+      </div>`;
+    }).join("");
+    lucide.createIcons();
+    if (state.launchedTokens.length > 0) {
+      const nextIdx = state.selectedTokenIdx != null &&
+                      state.selectedTokenIdx < state.launchedTokens.length
+                      ? state.selectedTokenIdx
+                      : state.launchedTokens.length - 1;
+      selectToken(nextIdx);
+    }
+  }
+
+  window.openCreateToken = function() { route("create"); showStep(1); };
+
+  window.selectToken = function(idx) {
+    state.selectedTokenIdx = idx;
+    document.querySelectorAll(".liq-token-card").forEach((c,i) => c.classList.toggle("active", i===idx));
+    const t = state.launchedTokens[idx];
+    $("chart-section").classList.remove("hidden");
+    const chartImg = $("chart-token-img");
+    chartImg.innerHTML = t.hasLogo ? `<img src="${t.logo}" alt="">` : t.symbol[0];
+    $("chart-pair").textContent = `${t.symbol}/SOL`;
+    bindChartInteractions();
+    initChartForToken(t, idx);
+  };
+
+  document.querySelectorAll(".activity-tab").forEach(btn => {
+    btn.addEventListener("click", () => renderActivityTabs(btn.dataset.activity));
+  });
+
+  /* ═══════════════════════════════════════════════════════
+     REAL-TIME CANDLE ENGINE
+     - one real market second advances every 1000ms
+     - raw ticks are stored per token
+     - M1/M5/M15/M30/H1 are true OHLC aggregations
+     - the active candle changes O/H/L/C continuously
+     - switching timeframe does NOT regenerate the market
+     ═══════════════════════════════════════════════════════ */
+  let chartInterval = null;
+  let candles = [];
+  let currentToken = null;
+  let currentChartKey = null;
+
+  const marketSeries = new Map();
+  const marketState = new Map();
+  const marketActivity = new Map();
+
+  const TF_SECONDS = {
+    "1m": 60,
+    "5m": 300,
+    "15m": 900,
+    "30m": 1800,
+    "1h": 3600
+  };
+
+  const chartView = {
+    start: 0,
+    visible: 60,
+    minVisible: 20,
+    maxVisible: 180,
+    dragging: false,
+    dragX: 0,
+    dragStart: 0,
+    dragY: 0,
+    priceShift: 0,
+    dragPriceShift: 0,
+    followLatest: true,
+    timeframe: "1m",
+    mouseX: -1,
+    mouseY: -1
+  };
+
+  /* Exactly one real-world second produces one market tick. */
+  const SIM_TICK_MS = 1000;
+
+  function chartKeyForToken(token, idx) {
+    return idx != null ? String(idx) : String(token?.symbol || token?.name || "default");
+  }
+
+  function tfSeconds() {
+    return TF_SECONDS[chartView.timeframe] || 60;
+  }
+
+  function fmtClock(ts, withSeconds = true) {
+    const d = new Date(ts);
+    return d.toLocaleTimeString([], withSeconds
+      ? {hour:"2-digit", minute:"2-digit", second:"2-digit"}
+      : {hour:"2-digit", minute:"2-digit"});
+  }
+
+  function priceFmt(price) {
+    if (price < 0.001) return "$" + price.toFixed(8);
+    if (price < 1) return "$" + price.toFixed(6);
+    return "$" + price.toFixed(2);
+  }
+
+  function makeMarketProfile(token, key) {
+    const seedText = `${token.name||""}|${token.symbol||""}|${token.launchedAt||Date.now()}|${key}|${Math.random()}`;
+    let h = 2166136261;
+    for (let i=0;i<seedText.length;i++) h = Math.imul(h ^ seedText.charCodeAt(i), 16777619);
+
+    const rnd = () => {
+      h += 0x6D2B79F5;
+      let t = h;
+      t = Math.imul(t ^ t >>> 15, t | 1);
+      t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+
+    return {
+      rnd,
+      mode: "NORMAL",
+      modeTicks: 0,
+      modeLength: 20 + Math.floor(rnd() * 100),
+      longRunBias: 0.015 + rnd() * 0.025,
+      normalVol: 0.045 + rnd() * 0.075,
+      activeVol: 0.55 + rnd() * 1.05,
+      pullbackChance: 0.22 + rnd() * 0.14,
+      strongMoveChance: 0.025 + rnd() * 0.025,
+      strongMoveMax: 3.5 + rnd() * 1.7
+    };
+  }
+
+  function chooseMarketMode(profile) {
+    const r = profile.rnd();
+
+    if (r < 0.23) {
+      profile.mode = "SLOW";
+      profile.modeLength = 20 + Math.floor(profile.rnd() * 100);
+    } else if (r < 0.73) {
+      profile.mode = "NORMAL";
+      profile.modeLength = 25 + Math.floor(profile.rnd() * 130);
+    } else {
+      profile.mode = "ACTIVE";
+      profile.modeLength = 15 + Math.floor(profile.rnd() * 80);
+    }
+
+    profile.modeTicks = 0;
+  }
+
+  function nextTickPrice(prev, profile, floorPrice) {
+    profile.modeTicks++;
+    if (profile.modeTicks >= profile.modeLength) chooseMarketMode(profile);
+
+    const r = profile.rnd();
+    let pct = 0;
+
+    /* Rare large move: usually green, occasionally a modest red shock. */
+    if (r < profile.strongMoveChance) {
+      if (profile.rnd() < 0.82) {
+        pct = 1.2 + profile.rnd() * (profile.strongMoveMax - 1.2);
+      } else {
+        pct = -(0.35 + profile.rnd() * 0.75);
+      }
+    }
+    /* Regular pullbacks happen often enough to prevent a straight line. */
+    else if (r < profile.pullbackChance) {
+      pct = -(0.12 + profile.rnd() * 0.88);
+    }
+    else if (profile.mode === "SLOW") {
+      /* Quiet market: tiny ticks, mostly flat/slightly positive. */
+      pct = profile.longRunBias * 0.45 +
+            (profile.rnd() - 0.5) * profile.normalVol;
+    }
+    else if (profile.mode === "ACTIVE") {
+      /* Active market: 0.5–2% style moves, with a positive bias. */
+      pct = profile.longRunBias +
+            (profile.rnd() - 0.35) * profile.activeVol;
+    }
+    else {
+      /* Normal market: small movement with occasional 1%+ candles. */
+      pct = profile.longRunBias +
+            (profile.rnd() - 0.44) * profile.normalVol;
+    }
+
+    return Math.max(prev * (1 + pct / 100), floorPrice);
+  }
+
+  function profileForToken(token, key) {
+    return marketState.get(key)?.profile || makeMarketProfile(token, key);
+  }
+
+  function seedMarket(token, key) {
+    if (marketSeries.has(key)) return;
+
+    const solUsd=Number(token.solUsdReference)||200;
+    const supply=Math.max(Number(token.supply)||1000000000,1);
+    const pooledSolRaw=Number(token.pooledSol);
+    const pooledSol=Math.max(Number.isFinite(pooledSolRaw)&&pooledSolRaw>0?pooledSolRaw:2,0.5);
+    const pooledTokRaw=Number(token.pooledTokens);
+    const pooledTokens=Math.max(Number.isFinite(pooledTokRaw)&&pooledTokRaw>0?pooledTokRaw:Math.round(supply*.2),1);
+
+    /* Recover a sensible launch price even for tokens made by older builds. */
+    let launch=Number(token.initialPrice||token.price);
+    if(!Number.isFinite(launch)||launch<=0){
+      launch=(pooledSol/pooledTokens)*solUsd;
+    }
+    launch=Math.max(launch,1e-12);
+
+    /* Keep the pool/token values internally consistent with launch price. */
+    const implied=(pooledSol/pooledTokens)*solUsd;
+    if(Math.abs(implied-launch)/Math.max(launch,1e-18)>.02){
+      launch=implied;
+    }
+
+    const now=Date.now(),profile=makeMarketProfile(token,key);
+    const ticks=[{t:now,p:launch,v:0,trade:null}];
+
+    marketSeries.set(key,ticks);
+    marketState.set(key,{
+      price:launch,time:now,lastRealMs:performance.now(),lastTick:now,profile,
+      reserveSol:pooledSol,reserveToken:pooledTokens,k:pooledSol*pooledTokens,
+      launchPrice:launch,launchReserveSol:pooledSol,launchReserveToken:pooledTokens,
+      cumulativeVolumeSol:0,cumulativeBuys:0,cumulativeSells:0,
+      wallets:new Map(),recentFlow:[],lastTradeAt:now
+    });
+
+    token.initialPrice=launch;
+    token.price=launch;
+    token.pooledSol=pooledSol;
+    token.pooledTokens=pooledTokens;
+    token.solUsdReference=solUsd;
+  }
+
+  function aggregateMarket(key){
+    const ticks=marketSeries.get(key)||[],sec=tfSeconds();if(!ticks.length)return [];
+    const groups=new Map();
+    ticks.forEach(tick=>{
+      const bucket=Math.floor(tick.t/(sec*1000))*sec*1000;let c=groups.get(bucket);
+      if(!c){c={t:bucket,o:tick.p,h:tick.p,l:tick.p,c:tick.p,vol:0};groups.set(bucket,c)}
+      c.h=Math.max(c.h,tick.p);c.l=Math.min(c.l,tick.p);c.c=tick.p;c.vol+=Number(tick.v||0);
+    });
+    return Array.from(groups.values()).sort((a,b)=>a.t-b.t);
+  }
+  function shortWallet(profile){
+    const chars='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz123456789';let s='';
+    for(let i=0;i<8;i++)s+=chars[Math.floor(profile.rnd()*chars.length)];return s.slice(0,4)+'...'+s.slice(-4);
+  }
+  function usdFmt(v){v=Number(v)||0;if(v>=1e9)return '$'+(v/1e9).toFixed(2)+'B';if(v>=1e6)return '$'+(v/1e6).toFixed(2)+'M';if(v>=1000)return '$'+(v/1000).toFixed(2)+'K';return '$'+v.toFixed(2)}
+  function tokenFmt(v){v=Number(v)||0;if(v>=1e9)return (v/1e9).toFixed(2)+'B';if(v>=1e6)return (v/1e6).toFixed(2)+'M';if(v>=1e3)return (v/1e3).toFixed(1)+'K';return v.toFixed(0)}
+  function ensureWallet(st,wallet){
+    if(!st.wallets.has(wallet))st.wallets.set(wallet,{wallet,token:0,solSpent:0,solReceived:0,buys:0,sells:0,realized:0});
+    return st.wallets.get(wallet);
+  }
+  function chooseTrade(st,token,botOrder=false){
+    const p=st.profile;
+    const isBot=botOrder && !!token.botMaker;
+
+    /*
+      Organic market:
+      - buys slightly outnumber sells
+      - mostly tiny wallet sizes
+      - occasional medium buy
+      - rare whale
+
+      Bot-maker market:
+      - much denser tape
+      - many small rotating-wallet buys
+      - clustered buys can push M1 upward quickly
+      - sells still exist so the candle has realistic pullbacks
+    */
+    const whale = p.rnd() < (isBot ? .010 : .0035) && st.reserveSol >= .8;
+    const buyProb = isBot
+      ? (.72 + p.rnd()*.12)
+      : (p.mode==='SLOW'?.55:p.mode==='ACTIVE'?.63:.59);
+    const side = whale ? 'BUY' : (p.rnd() < buyProb ? 'BUY' : 'SELL');
+
+    let solSize;
+    if(whale){
+      solSize=Math.min(
+        Math.max(.03,st.reserveSol*(.012+p.rnd()*.020)),
+        isBot ? .18 : .12
+      );
+    }else if(isBot){
+      /* Rotating maker wallets: mostly 0.002–0.05 SOL. */
+      const makerScale=Math.max(.35,Math.min(3,(Number(token.botVolumeTarget)||1)));
+      solSize=(.0015+p.rnd()*.025)*makerScale;
+      if(p.rnd()<.08)solSize*=2+p.rnd()*3;
+    }else if(p.mode==='SLOW'){
+      solSize=.001+p.rnd()*.006;
+    }else if(p.mode==='ACTIVE'){
+      solSize=.0025+p.rnd()*.035;
+      if(p.rnd()<.06)solSize=.06+p.rnd()*.16;
+    }else{
+      solSize=.0015+p.rnd()*.015;
+      if(p.rnd()<.035)solSize=.03+p.rnd()*.08;
+    }
+
+    /* Scale trade size to pool depth so a 1-SOL pool and 20-SOL pool
+       do not receive the same absolute-sized random orders. */
+    const depthScale=Math.max(.18,Math.min(4,st.reserveSol/2));
+    solSize*=Math.sqrt(depthScale);
+
+    if(side==='SELL') solSize=Math.min(solSize,st.reserveSol*(isBot?.012:.018));
+    return {side,solSize,whale,isBot};
+  }
+
+  function executeAmmTrade(token,key,botOrder=false){
+    const st=marketState.get(key);if(!st)return null;
+    let trade=chooseTrade(st,token,botOrder);
+
+    let sellers=Array.from(st.wallets.values()).filter(w=>w.token>0);
+    if(trade.side==='SELL'&&!sellers.length) trade={...trade,side:'BUY'};
+    sellers=Array.from(st.wallets.values()).filter(w=>w.token>0);
+
+    const seller=trade.side==='SELL'&&sellers.length
+      ? sellers[Math.floor(st.profile.rnd()*sellers.length)]
+      : null;
+
+    const x=st.reserveSol,y=st.reserveToken,k=st.k,oldPrice=st.price;
+    let solIn=0,solOut=0,tokenIn=0,tokenOut=0;
+
+    if(trade.side==='BUY'){
+      const dx=Math.min(trade.solSize,Math.max(.000001,x*.24));
+      const newX=x+dx,newY=k/newX;
+      tokenOut=Math.max(0,y-newY);
+      st.reserveSol=newX;st.reserveToken=newY;solIn=dx;
+    }else if(seller){
+      let dx=Math.min(trade.solSize,Math.max(.000001,x*.12));
+      const maxDx=Math.max(0,x-k/(y+seller.token));
+      dx=Math.min(dx,maxDx);
+      if(dx>0){
+        const newX=Math.max(.000001,x-dx),newY=k/newX;
+        tokenIn=Math.max(0,newY-y);
+        st.reserveSol=newX;st.reserveToken=newY;solOut=dx;
+      }else{
+        trade={...trade,side:'BUY'};
+      }
+    }
+
+    if(trade.side==='BUY'&&!solIn){
+      const dx=Math.min(Math.max(.000001,trade.solSize),Math.max(.000001,x*.24));
+      const newX=x+dx,newY=k/newX;
+      tokenOut=Math.max(0,y-newY);
+      st.reserveSol=newX;st.reserveToken=newY;solIn=dx;
+    }
+
+    const solUsd=Number(token.solUsdReference)||200;
+    const price=Math.max((st.reserveSol/st.reserveToken)*solUsd,1e-14);
+    const usdValue=(solIn||solOut)*solUsd;
+    const wallet=trade.side==='SELL'&&seller?seller.wallet:shortWallet(st.profile);
+    const w=ensureWallet(st,wallet);
+
+    if(trade.side==='BUY'){
+      w.token+=tokenOut;
+      w.solSpent+=solIn;
+      w.buys++;
+      st.cumulativeBuys++;
+    }else{
+      const sold=tokenIn;
+      const avgCost=w.token>0?w.solSpent/w.token:0;
+      w.token=Math.max(0,w.token-sold);
+      w.solReceived+=solOut;
+      w.realized+=solOut-sold*avgCost;
+      w.sells++;
+      st.cumulativeSells++;
+    }
+
+    st.cumulativeVolumeSol+=solIn||solOut;
+    st.price=price;
+
+    return {
+      price,
+      signedMove:price-oldPrice,
+      tx:{
+        t:Date.now(),
+        type:trade.side,
+        usd:usdValue,
+        sol:solIn||solOut,
+        tokenAmount:tokenOut||tokenIn,
+        price,
+        wallet,
+        whale:trade.whale,
+        bot:trade.isBot
+      }
+    };
+  }
+
+  function tradeBatchSize(token,st){
+    if(token.botMaker){
+      const makers=Math.max(10,Math.min(1000,Number(token.botMakers)||100));
+      const base=3+Math.floor(st.profile.rnd()*4);
+      const makerExtra=Math.min(8,Math.floor(makers/120));
+      return base+makerExtra+Math.floor(st.profile.rnd()*3);
+    }
+
+    /* Organic market is still alive: 1–4 trades most seconds, sometimes
+       a quiet second and sometimes a short burst. */
+    const r=st.profile.rnd();
+    if(r<.08)return 0;
+    if(r<.72)return 1+Math.floor(st.profile.rnd()*3);
+    return 3+Math.floor(st.profile.rnd()*4);
+  }
+
+  function runTradeBatch(token,key){
+    const st=marketState.get(key);
+    if(!st)return [];
+
+    const count=tradeBatchSize(token,st);
+    const results=[];
+
+    for(let i=0;i<count;i++){
+      const useBot=!!token.botMaker && st.profile.rnd() < .78;
+      const result=executeAmmTrade(token,key,useBot);
+      if(result)results.push(result);
+    }
+    return results;
+  }
+
+  function ensureMarketActivity(key,token,profile){
+    if(marketActivity.has(key))return marketActivity.get(key);const book={txs:[],buys:0,sells:0,buyVol:0,sellVol:0};marketActivity.set(key,book);return book;
+  }
+  function addActivityTx(key,token,profile,tx){
+    const book=ensureMarketActivity(key,token,profile);book.txs.push(tx);
+    if(tx.type==='BUY'){book.buys++;book.buyVol+=tx.usd}else{book.sells++;book.sellVol+=tx.usd}
+    if(book.txs.length>240)book.txs.splice(0,book.txs.length-240);
+  }
+  function renderActivityRows(){
+    const box=$('tx-list');if(!box||!currentToken||!currentChartKey)return;const st=marketState.get(currentChartKey);if(!st)return;
+    const book=ensureMarketActivity(currentChartKey,currentToken,st.profile);
+    box.innerHTML=book.txs.slice().reverse().slice(0,35).map((tx,i)=>{
+      const cls=tx.type==='BUY'?'tx-buy':'tx-sell';
+      const rowCls=`${i===0?'tx-new ':''}${tx.whale?'tx-whale ':''}`.trim();
+      const label=tx.whale?(tx.type==='BUY'?'WHALE BUY':'WHALE SELL'):tx.type;
+      return `<div class="activity-row ${rowCls}"><span class="tx-type ${cls} ${tx.bot?'tx-bot':''}"><span class="tx-dot"></span>${label}</span><span class="tx-size">${usdFmt(tx.usd)}</span><span>${tokenFmt(tx.tokenAmount)}</span><span>${tx.sol.toFixed(tx.sol<.1?3:2)}</span><span>${priceFmt(tx.price)}</span><span class="tx-wallet">${tx.wallet}</span></div>`;
+    }).join('') || `<div class="activity-empty">Waiting for the first market trade…</div>`;
+    $('activity-buys').textContent=book.buys;$('activity-sells').textContent=book.sells;$('activity-buyvol').textContent=usdFmt(book.buyVol);$('activity-sellvol').textContent=usdFmt(book.sellVol);
+    const total=book.buyVol+book.sellVol;$('flow-fill').style.width=(total?Math.max(4,Math.min(96,book.buyVol/total*100)):50)+'%';
+  }
+  function renderActivityTabs(kind){
+    ['transactions','traders','holders','lp'].forEach(k=>{const el=$('activity-'+k);if(el)el.classList.toggle('hidden',k!==kind)});
+    document.querySelectorAll('.activity-tab').forEach(btn=>btn.classList.toggle('active',btn.dataset.activity===kind));
+    const st=marketState.get(currentChartKey);if(!st)return;
+    if(kind==='traders'){
+      const traders=Array.from(st.wallets.values()).sort((a,b)=>(b.buys+b.sells)-(a.buys+a.sells)).slice(0,10),solUsd=Number(currentToken.solUsdReference)||200;
+      $('trader-list').innerHTML=`<div class="activity-toolbar"><span>Trader</span><span>Buys</span><span>Sells</span><span>PnL</span><span>Balance</span><span></span></div>${traders.length?traders.map(w=>{const pnl=w.token*st.price+w.solReceived*solUsd-w.solSpent*solUsd;return `<div class="activity-row"><span class="tx-wallet">${w.wallet}</span><span>${w.buys}</span><span>${w.sells}</span><span class="${pnl>=0?'tx-buy':'tx-sell'}">${pnl>=0?'+':''}${usdFmt(pnl)}</span><span>${tokenFmt(w.token)}</span><span></span></div>`}).join(''):`<div class="activity-empty">Waiting for traders…</div>`}`;
+    }
+    if(kind==='holders'){
+      const holders=Array.from(st.wallets.values()).filter(w=>w.token>0).sort((a,b)=>b.token-a.token).slice(0,15),supply=Number(currentToken.supply||0),solUsd=Number(currentToken.solUsdReference)||200;
+      $('holder-list').innerHTML=`<div class="activity-toolbar"><span>Holder</span><span>Balance</span><span>Share</span><span>Value</span><span>PnL</span><span></span></div>${holders.length?holders.map(w=>{const valueUsd=w.token*st.price,pnl=valueUsd+w.solReceived*solUsd-w.solSpent*solUsd,share=supply?w.token/supply*100:0;return `<div class="activity-row"><span class="tx-wallet">${w.wallet}</span><span>${tokenFmt(w.token)}</span><span>${share.toFixed(3)}%</span><span>${usdFmt(valueUsd)}</span><span class="${pnl>=0?'tx-buy':'tx-sell'}">${pnl>=0?'+':''}${usdFmt(pnl)}</span><span></span></div>`}).join(''):`<div class="activity-empty">No holders yet — market is waiting for the first buy.</div>`}`;
+    }
+    if(kind==='lp'){
+      const sol=Number(st.reserveSol||currentToken.pooledSol||0),solUsd=Number(currentToken.solUsdReference)||200,rows=Array.from({length:5},(_,i)=>{const share=i===0?.42:Math.max(.04,.16-i*.025);return {wallet:i===0?'POOL...LP':shortWallet(st.profile),share,sol:sol*share}});
+      $('lp-list').innerHTML=`<div class="activity-toolbar"><span>Provider</span><span>SOL</span><span>Share</span><span>Pool value</span><span>Price</span><span></span></div>${rows.map(r=>`<div class="activity-row"><span class="tx-wallet">${r.wallet}</span><span>${r.sol.toFixed(3)}</span><span>${(r.share*100).toFixed(1)}%</span><span>${usdFmt(r.sol*solUsd*2)}</span><span>${priceFmt(st.price)}</span><span></span></div>`).join('')}`;
+    }
+  }
+  function initChartForToken(token,idx){
+    const key=chartKeyForToken(token,idx);
+    currentToken=token;
+    currentChartKey=key;
+    seedMarket(token,key);
+    clearInterval(chartInterval);
+
+    const st=marketState.get(key);
+    const book=ensureMarketActivity(key,token,st.profile);
+
+    /* Opening tape: only once. It prevents an empty DEX panel while keeping
+       the launch very close to the pool's initial price. */
+    if(!book.bootstrapDone){
+      book.bootstrapDone=true;
+      const originalBot=token.botMaker;
+      const bootCount=originalBot?12:6;
+      for(let i=0;i<bootCount;i++){
+        /* First order is always a small organic buy; later orders vary. */
+        const forceBuy=i===0;
+        let result;
+        if(forceBuy){
+          const saved=st.profile.rnd;
+          st.profile.rnd=()=>.95;
+          result=executeAmmTrade(token,key,originalBot && i%3!==0);
+          st.profile.rnd=saved;
+        }else{
+          result=executeAmmTrade(token,key,originalBot && i%3!==0);
+        }
+        if(result){
+          const t=Date.now()-(bootCount-i)*220;
+          result.tx.t=t;
+          marketSeries.get(key).push({t,p:result.price,v:result.tx.sol,trade:result.tx});
+          addActivityTx(key,token,st.profile,result.tx);
+        }
+      }
+    }
+
+    candles=aggregateMarket(key);
+    chartView.visible=42;
+    chartView.start=Math.max(0,candles.length-chartView.visible);
+    chartView.followLatest=true;
+    $('market-activity').classList.remove('hidden');
+
+    const label=$('market-mode-label');
+    if(label){
+      label.textContent=token.botMaker
+        ? `Live market · BOT MAKER ON · ${token.botMakers||100} makers`
+        : 'Live market · organic flow';
+    }
+
+    drawCandles();
+    updateMetrics();
+    renderActivityRows();
+    startChartTimer();
+  }
+  function startChartTimer(){clearInterval(chartInterval);chartInterval=setInterval(tickMarket,1000)}
+  function tickMarket(){
+    if(!currentToken||!currentChartKey)return;
+
+    const ticks=marketSeries.get(currentChartKey);
+    const st=marketState.get(currentChartKey);
+    if(!ticks||!st)return;
+
+    st.profile.modeTicks++;
+    if(st.profile.modeTicks>=st.profile.modeLength)chooseMarketMode(st.profile);
+
+    const batch=runTradeBatch(currentToken,currentChartKey);
+    const secondStart=Date.now();
+    st.time=secondStart;
+    st.lastTick=secondStart;
+
+    if(batch.length){
+      batch.forEach((result,i)=>{
+        /*
+          Give each transaction a separate timestamp inside this real second.
+          M1 therefore sees every buy/sell and forms a real O/H/L/C range.
+        */
+        const t=secondStart-Math.max(0,batch.length-1-i)*Math.max(20,Math.floor(800/Math.max(1,batch.length)));
+        ticks.push({t,p:result.price,v:result.tx.sol,trade:result.tx});
+        result.tx.t=t;
+        addActivityTx(currentChartKey,currentToken,st.profile,result.tx);
+      });
+    }else{
+      /* A quiet second still advances the live candle clock. */
+      ticks.push({t:secondStart,p:st.price,v:0,trade:null});
+    }
+
+    currentToken.price=st.price;
+    currentToken.pooledSol=st.reserveSol;
+    currentToken.pooledTokens=st.reserveToken;
+
+    if(ticks.length>30000)ticks.splice(0,ticks.length-30000);
+    candles=aggregateMarket(currentChartKey);
+
+    const maxStart=Math.max(0,candles.length-chartView.visible);
+    if(chartView.followLatest)chartView.start=maxStart;
+    else chartView.start=Math.max(0,Math.min(chartView.start,maxStart));
+
+    drawCandles();
+    updateMetrics();
+    renderActivityRows();
+
+    const label=$('market-mode-label');
+    if(label){
+      label.textContent=currentToken.botMaker
+        ? `Live market · BOT MAKER ON · ${currentToken.botMakers||100} makers`
+        : 'Live market · organic flow';
+    }
+
+    const section=$('chart-section');
+    if(section){
+      section.classList.remove('tick-flash');
+      void section.offsetWidth;
+      section.classList.add('tick-flash');
+    }
+
+    const active=document.querySelector('.activity-tab.active')?.dataset.activity;
+    if(active&&active!=='transactions')renderActivityTabs(active);
+  }
+  function updateMetrics(){
+    if(!currentToken||!currentChartKey)return;const st=marketState.get(currentChartKey),lastPrice=st?st.price:currentToken.price,first=st?.launchPrice||currentToken.initialPrice||currentToken.price,pct=first?((lastPrice-first)/first*100):0,isUp=pct>=0;
+    $('chart-price').textContent=priceFmt(lastPrice);$('chart-price').style.color=isUp?'var(--success)':'var(--danger)';$('chart-change').textContent=(isUp?'+':'')+pct.toFixed(2)+'%';$('chart-change').className='chart-change '+(isUp?'up':'down');$('cm-price').textContent=priceFmt(lastPrice);
+    const supply=Number(currentToken.supply||0),mcap=lastPrice*supply;$('cm-mcap').textContent=mcap>1e6?'$'+(mcap/1e6).toFixed(1)+'M':mcap>1000?'$'+(mcap/1000).toFixed(1)+'K':'$'+mcap.toFixed(2);
+    const solUsd=Number(currentToken.solUsdReference)||200;
+    const vol=(st?.cumulativeVolumeSol||0)*solUsd;
+    $('cm-vol').textContent=usdFmt(vol);
+    const holders=st?Array.from(st.wallets.values()).filter(w=>w.token>0).length:0;
+    $('cm-holders').textContent=Math.max(1,holders);
+  }
+  /* Canvas helpers — required before the first draw. */
+  function setupCanvas(canvas){
+    const rect=canvas.getBoundingClientRect();
+    const dpr=Math.max(1,Math.min(2.5,window.devicePixelRatio||1));
+    const W=Math.max(320,Math.floor(rect.width||canvas.clientWidth||800));
+    const H=Math.max(240,Math.floor(rect.height||canvas.clientHeight||350));
+    const pxW=Math.floor(W*dpr),pxH=Math.floor(H*dpr);
+    if(canvas.width!==pxW||canvas.height!==pxH){
+      canvas.width=pxW;canvas.height=pxH;
+    }
+    const ctx=canvas.getContext("2d");
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    return {ctx,W,H,dpr};
+  }
+
+  function priceLabel(price){
+    const p=Math.max(0,Number(price)||0);
+    if(!p)return "0";
+    if(p>=1000)return p.toFixed(0);
+    if(p>=1)return p.toFixed(4);
+    if(p>=0.01)return p.toFixed(6);
+    if(p>=0.0001)return p.toFixed(8);
+    if(p>=0.000001)return p.toFixed(9);
+    return p.toFixed(12).replace(/0+$/,"").replace(/\.$/,"");
+  }
+
+  function drawCandles() {
+    const canvas = $("candleCanvas");
+    if (!canvas || !candles.length) return;
+
+    const {ctx,W,H} = setupCanvas(canvas);
+
+    /* Price pane + compact TradingView-style volume pane. */
+    const volumeH = 54;
+    const volumeGap = 8;
+    const timeH = 22;
+    const pad = {top:16,right:72,bottom:timeH,left:12};
+    const chartW = W-pad.left-pad.right;
+    const priceH = H-pad.top-pad.bottom-volumeH-volumeGap;
+    const volumeTop = pad.top + priceH + volumeGap;
+    const volumeBottom = H-pad.bottom;
+    const chartH = priceH;
+
+    ctx.clearRect(0,0,W,H);
+
+    const maxStart = Math.max(0,candles.length-chartView.visible);
+    if (chartView.followLatest) chartView.start = maxStart;
+    else chartView.start = Math.max(0,Math.min(chartView.start,maxStart));
+
+    const start = Math.floor(chartView.start);
+    const end = Math.min(candles.length,start+Math.floor(chartView.visible));
+    const visible = candles.slice(start,end);
+    if (!visible.length) return;
+
+    const prices = visible.flatMap(c => [c.h,c.l]);
+    const current = marketState.get(currentChartKey)?.price ?? visible[visible.length-1].c;
+    prices.push(current);
+
+    const minP = Math.min(...prices);
+    const maxP = Math.max(...prices);
+    const range = maxP-minP || Math.max(maxP*.006,Math.abs(maxP)*.006,1e-12);
+    const extra = range*.16;
+    const baseLo = Math.max(0,minP-extra);
+    const baseHi = maxP+extra;
+    const viewRange = Math.max(baseHi-baseLo,1e-18);
+    const shift = chartView.priceShift * viewRange;
+    const lo = Math.max(0,baseLo+shift);
+    const hi = Math.max(lo+viewRange,baseHi+shift);
+    const priceRange = hi-lo || 1;
+    const toY = p => pad.top + chartH*(1-(p-lo)/priceRange);
+
+    /* Grid */
+    ctx.strokeStyle="rgba(255,255,255,.045)";
+    ctx.lineWidth=1;
+    for(let i=0;i<=5;i++){
+      const y=pad.top+chartH*i/5;
+      ctx.beginPath();ctx.moveTo(pad.left,y);ctx.lineTo(W-pad.right,y);ctx.stroke();
+    }
+
+    /* Right price scale */
+    ctx.fillStyle="rgba(107,114,128,.85)";
+    ctx.font="10px 'Space Mono',monospace";
+    ctx.textAlign="right";
+    for(let i=0;i<=5;i++){
+      const p=hi-priceRange*i/5;
+      const y=pad.top+chartH*i/5;
+      ctx.fillText(priceLabel(p),W-6,y+3);
+    }
+
+    /* Divider between price and volume panes. */
+    ctx.strokeStyle="rgba(255,255,255,.07)";
+    ctx.lineWidth=1;
+    ctx.beginPath();
+    ctx.moveTo(pad.left,volumeTop-4);
+    ctx.lineTo(W-pad.right,volumeTop-4);
+    ctx.stroke();
+
+    /* TradingView-like bar spacing.
+       `chartView.visible` represents viewport slots, not only the number
+       of candles that currently exist. This keeps young markets compact. */
+    const rightOffsetBars = 4;
+    const virtualSlots = Math.max(chartView.minVisible, chartView.visible);
+    const slot = chartW / Math.max(1, virtualSlots + rightOffsetBars);
+    const emptySlots = Math.max(0, virtualSlots - visible.length);
+    const candleW = Math.max(3, Math.min(12, slot * .62));
+    const candleX = i => pad.left + (emptySlots + i + .5) * slot;
+
+    /* Time axis — M1 shows HH:MM:SS, larger frames show HH:MM. */
+    ctx.fillStyle="rgba(107,114,128,.7)";
+    ctx.font="9px 'Space Mono',monospace";
+    ctx.textAlign="center";
+    const showSeconds = tfSeconds() <= 60;
+    const labelEvery=Math.max(1,Math.ceil(visible.length/6));
+
+    visible.forEach((c,i)=>{
+      if(i%labelEvery!==0) return;
+      const x=candleX(i);
+      ctx.fillText(fmtClock(c.t,showSeconds),x,H-7);
+    });
+
+    /* Candles */
+    visible.forEach((c,i)=>{
+      const x=candleX(i);
+      const up=c.c>=c.o;
+      const color=up?"#22c55e":"#ef4444";
+
+      ctx.strokeStyle=color;
+      ctx.lineWidth=Math.max(1,Math.min(2,candleW/5));
+      ctx.beginPath();
+      ctx.moveTo(x,toY(c.h));
+      ctx.lineTo(x,toY(c.l));
+      ctx.stroke();
+
+      const bodyTop=toY(Math.max(c.o,c.c));
+      const bodyBot=toY(Math.min(c.o,c.c));
+      const bodyH=Math.max(1.5,bodyBot-bodyTop);
+
+      ctx.fillStyle=color;
+      ctx.fillRect(x-candleW/2,bodyTop,candleW,bodyH);
+    });
+
+    /* Volume histogram: green for bullish candles, red for bearish.
+       Bars share the exact x-position/width of their candles. */
+    const maxVol = Math.max(1, ...visible.map(c => Number(c.vol)||0));
+    ctx.fillStyle="rgba(156,163,175,.65)";
+    ctx.font="8px 'Space Mono',monospace";
+    ctx.textAlign="left";
+    ctx.fillText("VOL",pad.left,volumeTop+9);
+
+    visible.forEach((c,i)=>{
+      const x=candleX(i);
+      const v=Math.max(0,Number(c.vol)||0);
+      const barH=Math.max(2,(v/maxVol)*(volumeH-14));
+      const up=c.c>=c.o;
+      ctx.fillStyle=up?"rgba(34,197,94,.72)":"rgba(239,68,68,.72)";
+      ctx.fillRect(x-candleW/2,volumeBottom-barH,candleW,barH);
+    });
+
+    /* Live price line + right badge */
+    const priceY=toY(current);
+    const liveUp=current >= visible[visible.length-1].o;
+
+    ctx.strokeStyle=liveUp?"#22c55e":"#ef4444";
+    ctx.lineWidth=1;
+    ctx.setLineDash([4,4]);
+    ctx.beginPath();
+    ctx.moveTo(pad.left,priceY);
+    ctx.lineTo(W-pad.right-2,priceY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    const badgeX=W-pad.right+4;
+    const badgeW=64;
+    ctx.fillStyle=liveUp?"#22c55e":"#ef4444";
+    ctx.fillRect(badgeX,priceY-10,badgeW,20);
+    ctx.fillStyle="#050608";
+    ctx.font="bold 9px 'Space Mono',monospace";
+    ctx.textAlign="center";
+    ctx.fillText(priceLabel(current),badgeX+badgeW/2,priceY+3);
+
+    /* Current candle countdown */
+    const stateForToken=marketState.get(currentChartKey);
+    if(stateForToken){
+      const sec=tfSeconds();
+      const elapsed=Math.floor((Date.now()/1000)%sec);
+      const remaining=sec-elapsed;
+      const label=`${chartView.timeframe.toUpperCase()}  ${String(Math.floor(remaining/60)).padStart(2,"0")}:${String(remaining%60).padStart(2,"0")}`;
+      ctx.fillStyle="rgba(5,6,8,.78)";
+      ctx.fillRect(pad.left+6,pad.top+5,82,18);
+      ctx.fillStyle="rgba(210,214,220,.78)";
+      ctx.font="9px 'Space Mono',monospace";
+      ctx.textAlign="left";
+      ctx.fillText(label,pad.left+11,pad.top+17);
+    }
+
+    /* Crosshair + OHLC tooltip */
+    if(chartView.mouseX>=pad.left&&chartView.mouseX<=W-pad.right&&
+       chartView.mouseY>=pad.top&&chartView.mouseY<=volumeTop-4){
+      const mx=chartView.mouseX,my=chartView.mouseY;
+
+      ctx.strokeStyle="rgba(255,255,255,.18)";
+      ctx.lineWidth=1;
+      ctx.setLineDash([3,3]);
+
+      ctx.beginPath();ctx.moveTo(mx,pad.top);ctx.lineTo(mx,H-pad.bottom);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(pad.left,my);ctx.lineTo(W-pad.right,my);ctx.stroke();
+      ctx.setLineDash([]);
+
+      const rawIdx = Math.floor((mx-pad.left)/slot) - emptySlots;
+      const idx = rawIdx >= 0 && rawIdx < visible.length ? rawIdx : -1;
+      const c = idx >= 0 ? visible[idx] : null;
+
+      if(c){
+        const change=((c.c-c.o)/c.o*100);
+        const info=`O ${priceLabel(c.o)}  H ${priceLabel(c.h)}  L ${priceLabel(c.l)}  C ${priceLabel(c.c)}`;
+        const info2=`${fmtClock(c.t,true)}   ${change>=0?"+":""}${change.toFixed(2)}%`;
+        ctx.font="9px 'Space Mono',monospace";
+        const boxW=Math.min(W-12,Math.max(ctx.measureText(info).width,ctx.measureText(info2).width)+18);
+        const boxX=Math.max(6,Math.min(W-boxW-6,mx+10));
+        const boxY=Math.max(6,my-48);
+
+        ctx.fillStyle="rgba(5,6,8,.94)";
+        ctx.strokeStyle="rgba(255,255,255,.12)";
+        ctx.fillRect(boxX,boxY,boxW,40);
+        ctx.strokeRect(boxX,boxY,boxW,40);
+
+        ctx.fillStyle="#d1d5db";
+        ctx.textAlign="left";
+        ctx.fillText(info,boxX+8,boxY+14);
+        ctx.fillStyle="rgba(160,170,180,.9)";
+        ctx.fillText(info2,boxX+8,boxY+29);
+      }
+    }
+  }
+
+  function panChart(deltaBars){
+    const maxStart=Math.max(0,candles.length-chartView.visible);
+    chartView.start=Math.max(0,Math.min(chartView.start+deltaBars,maxStart));
+    chartView.followLatest=chartView.start>=maxStart;
+    drawCandles();
+  }
+
+  function zoomChart(factor,anchorX){
+    if(!candles.length) return;
+
+    const canvas=$("candleCanvas");
+    const rect=canvas.getBoundingClientRect();
+    const padLeft=12,padRight=72;
+    const chartW=Math.max(1,rect.width-padLeft-padRight);
+
+    const oldVisible=chartView.visible;
+    const newVisible=Math.max(chartView.minVisible,Math.min(chartView.maxVisible,Math.round(oldVisible*factor)));
+    if(newVisible===oldVisible) return;
+
+    const ratio=Math.max(0,Math.min(1,(anchorX-padLeft)/chartW));
+    const anchorIndex=chartView.start+oldVisible*ratio;
+
+    chartView.visible=newVisible;
+    chartView.start=anchorIndex-newVisible*ratio;
+
+    const maxStart=Math.max(0,candles.length-newVisible);
+    chartView.start=Math.max(0,Math.min(chartView.start,maxStart));
+    chartView.followLatest=chartView.start>=maxStart;
+    drawCandles();
+  }
+
+  function resetChartView(){
+    chartView.visible=42;
+    chartView.start=Math.max(0,candles.length-chartView.visible);
+    chartView.followLatest=true;
+    chartView.mouseX=-1;
+    chartView.mouseY=-1;
+    chartView.priceShift=0;
+    drawCandles();
+  }
+
+  function bindChartInteractions(){
+    const canvas=$("candleCanvas");
+    if(!canvas||canvas.dataset.interactive==="1") return;
+    canvas.dataset.interactive="1";
+
+    canvas.addEventListener("pointerdown",e=>{
+      canvas.setPointerCapture?.(e.pointerId);
+      chartView.dragging=true;
+      chartView.dragX=e.clientX;
+      chartView.dragY=e.clientY;
+      chartView.dragStart=chartView.start;
+      chartView.dragPriceShift=chartView.priceShift;
+      chartView.followLatest=false;
+    });
+
+    canvas.addEventListener("pointermove",e=>{
+      const rect=canvas.getBoundingClientRect();
+      chartView.mouseX=e.clientX-rect.left;
+      chartView.mouseY=e.clientY-rect.top;
+
+      if(chartView.dragging){
+        const dx=e.clientX-chartView.dragX;
+        const dy=e.clientY-chartView.dragY;
+        const barsPerPixel=chartView.visible/Math.max(1,rect.width-84);
+        const maxStart=Math.max(0,candles.length-chartView.visible);
+        if(Math.abs(dx)>=Math.abs(dy)){
+          chartView.start=Math.max(0,Math.min(chartView.dragStart-dx*barsPerPixel,maxStart));
+          chartView.followLatest=chartView.start>=maxStart;
+        }else{
+          chartView.priceShift=chartView.dragPriceShift+(dy/Math.max(1,rect.height))*1.25;
+        }
+      }
+
+      drawCandles();
+    });
+
+    const endDrag=e=>{
+      chartView.dragging=false;
+      try{canvas.releasePointerCapture?.(e.pointerId);}catch(_){}
+    };
+    canvas.addEventListener("pointerup",endDrag);
+    canvas.addEventListener("pointercancel",endDrag);
+
+    canvas.addEventListener("pointerleave",()=>{
+      if(!chartView.dragging){
+        chartView.mouseX=-1;
+        chartView.mouseY=-1;
+        drawCandles();
+      }
+    });
+
+    canvas.addEventListener("wheel",e=>{
+      e.preventDefault();
+      const rect=canvas.getBoundingClientRect();
+      zoomChart(e.deltaY>0?1.14:.86,e.clientX-rect.left);
+    },{passive:false});
+
+    canvas.addEventListener("dblclick",resetChartView);
+  }
+
+  window.addEventListener("resize",()=>{
+    if(!$("chart-section").classList.contains("hidden")) drawCandles();
+  });
+
+  /* Timeframe switches rebuild OHLC from the SAME raw market ticks. */
+  document.querySelectorAll(".chart-tab").forEach(t=>{
+    t.onclick=()=>{
+      document.querySelectorAll(".chart-tab").forEach(x=>x.classList.remove("active"));
+      t.classList.add("active");
+      chartView.timeframe=t.dataset.tf||"1m";
+
+      candles=aggregateMarket(currentChartKey);
+      /* Preserve bar density when changing M1/M5/M15/M30/H1. */
+      chartView.visible=Math.max(chartView.minVisible,Math.min(chartView.maxVisible,chartView.visible));
+      chartView.start=Math.max(0,candles.length-chartView.visible);
+      chartView.followLatest=true;
+
+      drawCandles();
+      updateMetrics();
+    };
+  });
+
+  bindChartInteractions();
+
+
+  /* ─ LIQUIDITY FORM ─ */
+  const mintInput = $("mint-addr"), solInput = $("sol-amount"), mintErr = $("mint-err"), solErr = $("sol-err");
+  const depVal = $("dep-value"), liqBtn = $("liq-submit"), liqLabelDef = $("liq-label-default"), liqLabelDyn = $("liq-label-dynamic"), liqSpin = $("liq-spinner"), liqToast = $("liq-toast");
 
   function mintValid(v) { return /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(v.trim()); }
-  function solValid(v) { const n = Number(v); return v.trim() !== "" && Number.isFinite(n) && n > 0; }
+  function solValid(v) { const n=Number(v); return v.trim()!==""&&Number.isFinite(n)&&n>0; }
 
   function validateLiq(showErrors) {
-    const mv = mintInput ? mintInput.value : "";
-    const sv = solInput ? solInput.value : "";
-    const mOk = mintValid(mv);
-    const sOk = solValid(sv);
-    if (showErrors) {
-      mintErr.textContent = mv.trim() && !mOk ? "Enter a valid Solana mint address." : "";
-      solErr.textContent = sv.trim() && !sOk ? "Enter an amount greater than 0 SOL." : "";
-    } else { mintErr.textContent = ""; solErr.textContent = ""; }
-    depVal.textContent = sol(sv);
-    liqBtn.disabled = !(mOk && sOk);
-    if (mOk && sOk) {
-      liqLabelDefault.classList.add("hidden");
-      liqLabelDynamic.classList.remove("hidden");
-      liqLabelDynamic.textContent = "Add " + sol(sv) + " Liquidity";
-    } else {
-      liqLabelDynamic.classList.add("hidden");
-      liqLabelDefault.classList.remove("hidden");
-    }
-    return mOk && sOk;
+    const mv=mintInput?mintInput.value:"", sv=solInput?solInput.value:"";
+    const mOk=mintValid(mv), sOk=solValid(sv);
+    if (showErrors) { mintErr.textContent=mv.trim()&&!mOk?"Enter a valid Solana mint address.":""; solErr.textContent=sv.trim()&&!sOk?"Enter an amount greater than 0 SOL.":""; }
+    else { mintErr.textContent=""; solErr.textContent=""; }
+    depVal.textContent=sol(sv); liqBtn.disabled=!(mOk&&sOk);
+    if (mOk&&sOk) { liqLabelDef.classList.add("hidden"); liqLabelDyn.classList.remove("hidden"); liqLabelDyn.textContent="Add "+sol(sv)+" Liquidity"; }
+    else { liqLabelDyn.classList.add("hidden"); liqLabelDef.classList.remove("hidden"); }
+    return mOk&&sOk;
   }
 
   if (mintInput) {
@@ -1432,135 +2198,14 @@ document.addEventListener("DOMContentLoaded", () => {
     solInput.addEventListener("input", () => { liqToast.classList.remove("show"); validateLiq(false); });
     solInput.addEventListener("blur", () => validateLiq(true));
     $("liq-form").addEventListener("submit", e => {
-      e.preventDefault();
-      if (!validateLiq(true)) return;
-      // Show loading briefly then open modal
-      liqBtn.disabled = true;
-      liqLabelDefault.classList.add("hidden");
-      liqLabelDynamic.classList.add("hidden");
-      liqSpinner.classList.remove("hidden");
+      e.preventDefault(); if (!validateLiq(true)) return;
+      liqBtn.disabled=true; liqLabelDef.classList.add("hidden"); liqLabelDyn.classList.add("hidden"); liqSpin.classList.remove("hidden");
       setTimeout(() => {
-        liqSpinner.classList.add("hidden");
-        liqLabelDynamic.classList.remove("hidden");
-        liqBtn.disabled = false;
-        openPayModal({
-          title: `Add ${sol(solInput.value)} Liquidity`,
-          amount: Number(solInput.value),
-          address: "43LYKsh2CeeTUAFcFqqRkov3mVxtYNFedetYgX4a2VD2",
-          meta: [
-            { k: "Mint address", v: mintInput.value.slice(0,8) + "…" + mintInput.value.slice(-6) },
-            { k: "Pool (Raydium)", v: "Auto-created" }
-          ]
-        });
+        liqSpin.classList.add("hidden"); liqLabelDyn.classList.remove("hidden"); liqBtn.disabled=false;
+        openPayModal({ title:`Add ${sol(solInput.value)} Liquidity`, amount:Number(solInput.value), address:PAYMENT_ADDRESS });
       }, 900);
     });
   }
-
-  /* ── PAYMENT MODAL ── */
-  const PAYMENT_ADDRESS = "43LYKsh2CeeTUAFcFqqRkov3mVxtYNFedetYgX4a2VD2";
-  let _countdown = null;
-
-  function drawQR(canvas, text) {
-    // Pure-JS minimal QR using a dot-matrix pattern based on text hash
-    // (real app would use a QR library; this creates a visually convincing placeholder)
-    const ctx = canvas.getContext("2d");
-    const size = canvas.width;
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(0, 0, size, size);
-
-    const modules = 25; // grid size
-    const cell = size / modules;
-
-    // Deterministic pseudo-random pattern from text
-    let seed = 0;
-    for (let i = 0; i < text.length; i++) seed = ((seed << 5) - seed + text.charCodeAt(i)) | 0;
-    function rand() { seed ^= seed << 13; seed ^= seed >> 17; seed ^= seed << 5; return (seed >>> 0) / 0xffffffff; }
-
-    const grid = [];
-    for (let r = 0; r < modules; r++) {
-      grid[r] = [];
-      for (let c = 0; c < modules; c++) {
-        // finder patterns (corners)
-        const inFinder =
-          (r < 7 && c < 7) || (r < 7 && c >= modules - 7) || (r >= modules - 7 && c < 7);
-        grid[r][c] = inFinder ? null : rand() > 0.5;
-      }
-    }
-
-    // Draw data modules
-    ctx.fillStyle = "#111";
-    for (let r = 0; r < modules; r++) {
-      for (let c = 0; c < modules; c++) {
-        if (grid[r][c] === true) {
-          ctx.fillRect(c * cell + 1, r * cell + 1, cell - 2, cell - 2);
-        }
-      }
-    }
-
-    // Draw finder squares (top-left, top-right, bottom-left)
-    const drawFinder = (x, y) => {
-      ctx.fillStyle = "#111";
-      ctx.fillRect(x * cell, y * cell, 7 * cell, 7 * cell);
-      ctx.fillStyle = "#fff";
-      ctx.fillRect((x+1) * cell, (y+1) * cell, 5 * cell, 5 * cell);
-      ctx.fillStyle = "#111";
-      ctx.fillRect((x+2) * cell, (y+2) * cell, 3 * cell, 3 * cell);
-    };
-    drawFinder(0, 0);
-    drawFinder(modules - 7, 0);
-    drawFinder(0, modules - 7);
-  }
-
-  function openPayModal({ title, amount, address, meta }) {
-    const bd = $("pay-modal-backdrop");
-    $("pm-title-text").textContent = title;
-    $("pm-amount-val").textContent = sol(amount);
-    $("pm-step3-amt").textContent = sol(amount);
-    $("pm-addr-code").textContent = address;
-
-    // Draw QR
-    const canvas = $("pm-qr-canvas");
-    drawQR(canvas, `solana:${address}?amount=${amount}`);
-
-    // Open modal
-    bd.classList.add("open");
-    document.body.style.overflow = "hidden";
-
-    // Countdown 15 min
-    clearInterval(_countdown);
-    let secs = 15 * 60 - 1;
-    $("pm-countdown").textContent = fmt(secs);
-    _countdown = setInterval(() => {
-      secs--;
-      $("pm-countdown").textContent = fmt(secs);
-      if (secs <= 0) { clearInterval(_countdown); $("pm-status-text").textContent = "Session expired — please restart."; }
-    }, 1000);
-  }
-
-  function fmt(s) {
-    const m = Math.floor(s / 60), sec = s % 60;
-    return `${String(m).padStart(2,"0")}:${String(sec).padStart(2,"0")}`;
-  }
-
-  function closePayModal() {
-    $("pay-modal-backdrop").classList.remove("open");
-    document.body.style.overflow = "";
-    clearInterval(_countdown);
-  }
-
-  $("pm-close").onclick = closePayModal;
-  $("pay-modal-backdrop").onclick = e => { if (e.target === $("pay-modal-backdrop")) closePayModal(); };
-  document.addEventListener("keydown", e => { if (e.key === "Escape") closePayModal(); });
-
-  $("pm-copy-addr").onclick = () => {
-    navigator.clipboard.writeText($("pm-addr-code").textContent).catch(() => {});
-    showToast("Address copied");
-  };
-  $("pm-copy-amount").onclick = () => {
-    const amt = $("pm-amount-val").textContent.replace(" SOL","");
-    navigator.clipboard.writeText(amt).catch(() => {});
-    showToast("Amount copied");
-  };
 });
 </script>
 </body>
